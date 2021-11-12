@@ -1,0 +1,30 @@
+{
+  "name": "nowsecure-action",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "license": "MIT",
+  "author": "Keegan Saunders <ksaunders@nowsecure.com>",
+  "scripts": {
+    "build": "genversion -d --es6 --semi src/nowsecure-version.ts && tsc",
+    "lint": "eslint src/**/*.ts",
+    "format": "prettier --write .",
+    "format-check": "prettier --check **/*.ts",
+    "prepare-release": "yarn build && ncc build -s src/nowsecure-action.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^16.9.1",
+    "@types/sarif": "^2.1.4",
+    "@typescript-eslint/eslint-plugin": "^4.31.0",
+    "@typescript-eslint/parser": "^4.31.0",
+    "@vercel/ncc": "^0.31.0",
+    "eslint": "^7.32.0",
+    "genversion": "^3.0.2",
+    "prettier": "^2.4.0",
+    "typescript": "^4.4.2"
+  },
+  "dependencies": {
+    "@actions/core": "^1.5.0",
+    "@actions/http-client": "^1.0.11",
+    "ripgrep-js": "3.0.0"
+  }
+}

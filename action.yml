@@ -1,0 +1,32 @@
+name: "NowSecure"
+description: "The NowSecure Mobile Security Action delivers fast, accurate, automated security analysis of iOS and Android apps coded in any language"
+author: "NowSecure Inc."
+inputs:
+  token:
+    required: true
+    description: "NowSecure Platform token."
+  api_url:
+    required: false
+    description: "NowSecure GraphQL API endpoint."
+    default: "https://api.nowsecure.com"
+  lab_api_url:
+    required: false
+    description: "NowSecure Lab API endpoint."
+    default: "https://lab-api.nowsecure.com"
+  app_file:
+    required: true
+    description: "Application binary to scan on NowSecure. Must be an Android or iOS application."
+  group_id:
+    required: true
+    description: "Group ID for the application in Platform."
+  headstart_ms:
+    required: false
+    description: "Head start in milliseconds to give Platform before an application is polled for details. Default is 5 minutes."
+    default: "300000"
+  poll_interval_ms:
+    required: false
+    description: "Interval to poll Platform for application details. Default is once a minute."
+    default: "60000"
+runs:
+  using: "node12"
+  main: "dist/index.js"
