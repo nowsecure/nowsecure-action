@@ -1,5 +1,5 @@
 name: "NowSecure"
-description: "The NowSecure Mobile Security Action delivers fast, accurate, automated security analysis of iOS and Android apps coded in any language"
+description: "The NowSecure Action delivers fast, accurate, automated security analysis of iOS and Android apps coded in any language"
 author: "NowSecure Inc."
 inputs:
   token:
