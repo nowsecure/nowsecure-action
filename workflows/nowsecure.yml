@@ -60,9 +60,9 @@ jobs:
         timeout-minutes: 60
         with:
           token: ${{ secrets.NS_TOKEN }}
-          app_file: app-insecure-debug.apk
+          app_file: com.fubar.mobile.apk
           # TODO: Replace the Group ID
-          group_id: "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
+          group_id: ${{ secrets.GROUP_ID }}
 
       - name: Upload SARIF file
         uses: github/codeql-action/upload-sarif@v1
