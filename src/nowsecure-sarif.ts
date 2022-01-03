@@ -59,7 +59,10 @@ export async function convertToSarif(data: PullReportResponse): Promise<Log> {
     if (!finding.affected) continue;
 
     let markdown = "";
-    let issueDescription = "No issue description available.\n";
+    let issueSummary = "No issue description available.\n";
+    if (finding.summary) {
+      issueSummary = finding.summary;
+    }
     const tags: string[] = [];
 
     const issue = finding.check.issue;
@@ -70,11 +73,6 @@ export async function convertToSarif(data: PullReportResponse): Promise<Log> {
 
       if (issue.cvss) {
         tags.push(`CVSS-${issue.cvss.toFixed(2)}`);
-      }
-
-      if (issue.description) {
-        issueDescription = issue.description;
-        markdown += `## Description\n${issue.description}\n`;
       }
 
       if (issue.impactSummary) {
@@ -168,7 +166,7 @@ export async function convertToSarif(data: PullReportResponse): Promise<Log> {
         text: finding.title,
       },
       fullDescription: {
-        text: issueDescription,
+        text: issueSummary,
       },
       defaultConfiguration: {
         level: severityToNotification(finding.severity),

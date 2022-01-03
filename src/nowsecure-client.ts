@@ -26,6 +26,7 @@ const platformGql = (reportId: string): string => `query {
           kind
           key
           title
+          summary
           affected
           severity
           context {
