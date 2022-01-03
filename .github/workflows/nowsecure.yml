@@ -59,10 +59,9 @@ jobs:
         uses: nowsecure/nowsecure-action@v1
         timeout-minutes: 60
         with:
-          token: ${{ secrets.NS_TOKEN }}
-          app_file: com.fubar.mobile.apk
+          app_file: app-insecure-debug.apk
           # TODO: Replace the Group ID
-          group_id: ${{ secrets.GROUP_ID }}
+          group_id: "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
 
       - name: Upload SARIF file
         uses: github/codeql-action/upload-sarif@v1
