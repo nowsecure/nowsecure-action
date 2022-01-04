@@ -2875,6 +2875,11 @@ var external_crypto_default = /*#__PURE__*/__nccwpck_require__.n(external_crypto
 // EXTERNAL MODULE: ./node_modules/ripgrep-js/dist/index.js
 var dist = __nccwpck_require__(907);
 ;// CONCATENATED MODULE: ./src/nowsecure-sarif.ts
+/*
+ * Copyright © 2021 NowSecure Inc.
+ *
+ * SPDX-License-Identifier: MIT
+ */
 
 
 /**
@@ -2921,7 +2926,10 @@ async function convertToSarif(data) {
         if (!finding.affected)
             continue;
         let markdown = "";
-        let issueDescription = "No issue description available.\n";
+        let issueSummary = "No issue description available.\n";
+        if (finding.summary) {
+            issueSummary = finding.summary;
+        }
         const tags = [];
         const issue = finding.check.issue;
         if (issue) {
@@ -2930,10 +2938,6 @@ async function convertToSarif(data) {
             }
             if (issue.cvss) {
                 tags.push(`CVSS-${issue.cvss.toFixed(2)}`);
-            }
-            if (issue.description) {
-                issueDescription = issue.description;
-                markdown += `## Description\n${issue.description}\n`;
             }
             if (issue.impactSummary) {
                 markdown += `## Business Impact\n${issue.impactSummary}\n`;
@@ -3011,7 +3015,7 @@ async function convertToSarif(data) {
                 text: finding.title,
             },
             fullDescription: {
-                text: issueDescription,
+                text: issueSummary,
             },
             defaultConfiguration: {
                 level: severityToNotification(finding.severity),
@@ -3068,7 +3072,7 @@ async function convertToSarif(data) {
                 },
             ],
         };
-        // TODO: PoC. This should be refactored out and abstracted.
+        // FIXME: This should be refactored out and abstracted.
         const localResults = [];
         if (finding.key == "path_traversal") {
             const context = finding.context;
@@ -3165,6 +3169,11 @@ var http_client = __nccwpck_require__(925);
 const version = "1.0.0";
 
 ;// CONCATENATED MODULE: ./src/nowsecure-client.ts
+/*
+ * Copyright © 2021 NowSecure Inc.
+ *
+ * SPDX-License-Identifier: MIT
+ */
 
 
 /**
@@ -3182,6 +3191,7 @@ const platformGql = (reportId) => `query {
           kind
           key
           title
+          summary
           affected
           severity
           context {
@@ -3261,6 +3271,11 @@ class NowSecure {
 // EXTERNAL MODULE: external "util"
 var external_util_ = __nccwpck_require__(669);
 ;// CONCATENATED MODULE: ./src/nowsecure-action.ts
+/*
+ * Copyright © 2021 NowSecure Inc.
+ *
+ * SPDX-License-Identifier: MIT
+ */
 
 
 
