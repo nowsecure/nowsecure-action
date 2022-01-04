@@ -68,6 +68,7 @@ export interface Finding {
   kind: FindingType;
   key: string;
   title: string;
+  summary: string | null;
   affected: boolean;
   severity: Severity;
   context: {
