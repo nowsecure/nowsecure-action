@@ -27,7 +27,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.issue = exports.issueCommand = void 0;
-const os = __importStar(__nccwpck_require__(87));
+const os = __importStar(__nccwpck_require__(37));
 const utils_1 = __nccwpck_require__(278);
 /**
  * Commands
@@ -134,12 +134,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getState = exports.saveState = exports.group = exports.endGroup = exports.startGroup = exports.info = exports.notice = exports.warning = exports.error = exports.debug = exports.isDebug = exports.setFailed = exports.setCommandEcho = exports.setOutput = exports.getBooleanInput = exports.getMultilineInput = exports.getInput = exports.addPath = exports.setSecret = exports.exportVariable = exports.ExitCode = void 0;
+exports.getIDToken = exports.getState = exports.saveState = exports.group = exports.endGroup = exports.startGroup = exports.info = exports.notice = exports.warning = exports.error = exports.debug = exports.isDebug = exports.setFailed = exports.setCommandEcho = exports.setOutput = exports.getBooleanInput = exports.getMultilineInput = exports.getInput = exports.addPath = exports.setSecret = exports.exportVariable = exports.ExitCode = void 0;
 const command_1 = __nccwpck_require__(351);
 const file_command_1 = __nccwpck_require__(717);
 const utils_1 = __nccwpck_require__(278);
-const os = __importStar(__nccwpck_require__(87));
-const path = __importStar(__nccwpck_require__(622));
+const os = __importStar(__nccwpck_require__(37));
+const path = __importStar(__nccwpck_require__(17));
+const oidc_utils_1 = __nccwpck_require__(41);
 /**
  * The code to exit an action
  */
@@ -408,6 +409,12 @@ function getState(name) {
     return process.env[`STATE_${name}`] || '';
 }
 exports.getState = getState;
+function getIDToken(aud) {
+    return __awaiter(this, void 0, void 0, function* () {
+        return yield oidc_utils_1.OidcClient.getIDToken(aud);
+    });
+}
+exports.getIDToken = getIDToken;
 //# sourceMappingURL=core.js.map
 
 /***/ }),
@@ -441,8 +448,8 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.issueCommand = void 0;
 // We use any as a valid input type
 /* eslint-disable @typescript-eslint/no-explicit-any */
-const fs = __importStar(__nccwpck_require__(747));
-const os = __importStar(__nccwpck_require__(87));
+const fs = __importStar(__nccwpck_require__(147));
+const os = __importStar(__nccwpck_require__(37));
 const utils_1 = __nccwpck_require__(278);
 function issueCommand(command, message) {
     const filePath = process.env[`GITHUB_${command}`];
@@ -458,6 +465,90 @@ function issueCommand(command, message) {
 }
 exports.issueCommand = issueCommand;
 //# sourceMappingURL=file-command.js.map
+
+/***/ }),
+
+/***/ 41:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.OidcClient = void 0;
+const http_client_1 = __nccwpck_require__(925);
+const auth_1 = __nccwpck_require__(702);
+const core_1 = __nccwpck_require__(186);
+class OidcClient {
+    static createHttpClient(allowRetry = true, maxRetry = 10) {
+        const requestOptions = {
+            allowRetries: allowRetry,
+            maxRetries: maxRetry
+        };
+        return new http_client_1.HttpClient('actions/oidc-client', [new auth_1.BearerCredentialHandler(OidcClient.getRequestToken())], requestOptions);
+    }
+    static getRequestToken() {
+        const token = process.env['ACTIONS_ID_TOKEN_REQUEST_TOKEN'];
+        if (!token) {
+            throw new Error('Unable to get ACTIONS_ID_TOKEN_REQUEST_TOKEN env variable');
+        }
+        return token;
+    }
+    static getIDTokenUrl() {
+        const runtimeUrl = process.env['ACTIONS_ID_TOKEN_REQUEST_URL'];
+        if (!runtimeUrl) {
+            throw new Error('Unable to get ACTIONS_ID_TOKEN_REQUEST_URL env variable');
+        }
+        return runtimeUrl;
+    }
+    static getCall(id_token_url) {
+        var _a;
+        return __awaiter(this, void 0, void 0, function* () {
+            const httpclient = OidcClient.createHttpClient();
+            const res = yield httpclient
+                .getJson(id_token_url)
+                .catch(error => {
+                throw new Error(`Failed to get ID Token. \n 
+        Error Code : ${error.statusCode}\n 
+        Error Message: ${error.result.message}`);
+            });
+            const id_token = (_a = res.result) === null || _a === void 0 ? void 0 : _a.value;
+            if (!id_token) {
+                throw new Error('Response json body do not have ID Token field');
+            }
+            return id_token;
+        });
+    }
+    static getIDToken(audience) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                // New ID Token is requested from action service
+                let id_token_url = OidcClient.getIDTokenUrl();
+                if (audience) {
+                    const encodedAudience = encodeURIComponent(audience);
+                    id_token_url = `${id_token_url}&audience=${encodedAudience}`;
+                }
+                core_1.debug(`ID token url is ${id_token_url}`);
+                const id_token = yield OidcClient.getCall(id_token_url);
+                core_1.setSecret(id_token);
+                return id_token;
+            }
+            catch (error) {
+                throw new Error(`Error message: ${error.message}`);
+            }
+        });
+    }
+}
+exports.OidcClient = OidcClient;
+//# sourceMappingURL=oidc-utils.js.map
 
 /***/ }),
 
@@ -496,6 +587,7 @@ function toCommandProperties(annotationProperties) {
     }
     return {
         title: annotationProperties.title,
+        file: annotationProperties.file,
         line: annotationProperties.startLine,
         endLine: annotationProperties.endLine,
         col: annotationProperties.startColumn,
@@ -507,15 +599,80 @@ exports.toCommandProperties = toCommandProperties;
 
 /***/ }),
 
+/***/ 702:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+class BasicCredentialHandler {
+    constructor(username, password) {
+        this.username = username;
+        this.password = password;
+    }
+    prepareRequest(options) {
+        options.headers['Authorization'] =
+            'Basic ' +
+                Buffer.from(this.username + ':' + this.password).toString('base64');
+    }
+    // This handler cannot handle 401
+    canHandleAuthentication(response) {
+        return false;
+    }
+    handleAuthentication(httpClient, requestInfo, objs) {
+        return null;
+    }
+}
+exports.BasicCredentialHandler = BasicCredentialHandler;
+class BearerCredentialHandler {
+    constructor(token) {
+        this.token = token;
+    }
+    // currently implements pre-authorization
+    // TODO: support preAuth = false where it hooks on 401
+    prepareRequest(options) {
+        options.headers['Authorization'] = 'Bearer ' + this.token;
+    }
+    // This handler cannot handle 401
+    canHandleAuthentication(response) {
+        return false;
+    }
+    handleAuthentication(httpClient, requestInfo, objs) {
+        return null;
+    }
+}
+exports.BearerCredentialHandler = BearerCredentialHandler;
+class PersonalAccessTokenCredentialHandler {
+    constructor(token) {
+        this.token = token;
+    }
+    // currently implements pre-authorization
+    // TODO: support preAuth = false where it hooks on 401
+    prepareRequest(options) {
+        options.headers['Authorization'] =
+            'Basic ' + Buffer.from('PAT:' + this.token).toString('base64');
+    }
+    // This handler cannot handle 401
+    canHandleAuthentication(response) {
+        return false;
+    }
+    handleAuthentication(httpClient, requestInfo, objs) {
+        return null;
+    }
+}
+exports.PersonalAccessTokenCredentialHandler = PersonalAccessTokenCredentialHandler;
+
+
+/***/ }),
+
 /***/ 925:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
-var __webpack_unused_export__;
 
-__webpack_unused_export__ = ({ value: true });
-const http = __nccwpck_require__(605);
-const https = __nccwpck_require__(211);
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const http = __nccwpck_require__(685);
+const https = __nccwpck_require__(687);
 const pm = __nccwpck_require__(443);
 let tunnel;
 var HttpCodes;
@@ -547,16 +704,16 @@ var HttpCodes;
     HttpCodes[HttpCodes["BadGateway"] = 502] = "BadGateway";
     HttpCodes[HttpCodes["ServiceUnavailable"] = 503] = "ServiceUnavailable";
     HttpCodes[HttpCodes["GatewayTimeout"] = 504] = "GatewayTimeout";
-})(HttpCodes = exports.o8 || (exports.o8 = {}));
+})(HttpCodes = exports.HttpCodes || (exports.HttpCodes = {}));
 var Headers;
 (function (Headers) {
     Headers["Accept"] = "accept";
     Headers["ContentType"] = "content-type";
-})(Headers = exports.PM || (exports.PM = {}));
+})(Headers = exports.Headers || (exports.Headers = {}));
 var MediaTypes;
 (function (MediaTypes) {
     MediaTypes["ApplicationJson"] = "application/json";
-})(MediaTypes = exports.Tr || (exports.Tr = {}));
+})(MediaTypes = exports.MediaTypes || (exports.MediaTypes = {}));
 /**
  * Returns the proxy URL, depending upon the supplied url and proxy environment variables.
  * @param serverUrl  The server URL where the request will be sent. For example, https://api.github.com
@@ -565,7 +722,7 @@ function getProxyUrl(serverUrl) {
     let proxyUrl = pm.getProxyUrl(new URL(serverUrl));
     return proxyUrl ? proxyUrl.href : '';
 }
-__webpack_unused_export__ = getProxyUrl;
+exports.getProxyUrl = getProxyUrl;
 const HttpRedirectCodes = [
     HttpCodes.MovedPermanently,
     HttpCodes.ResourceMoved,
@@ -589,7 +746,7 @@ class HttpClientError extends Error {
         Object.setPrototypeOf(this, HttpClientError.prototype);
     }
 }
-__webpack_unused_export__ = HttpClientError;
+exports.HttpClientError = HttpClientError;
 class HttpClientResponse {
     constructor(message) {
         this.message = message;
@@ -606,12 +763,12 @@ class HttpClientResponse {
         });
     }
 }
-__webpack_unused_export__ = HttpClientResponse;
+exports.HttpClientResponse = HttpClientResponse;
 function isHttps(requestUrl) {
     let parsedUrl = new URL(requestUrl);
     return parsedUrl.protocol === 'https:';
 }
-__webpack_unused_export__ = isHttps;
+exports.isHttps = isHttps;
 class HttpClient {
     constructor(userAgent, handlers, requestOptions) {
         this._ignoreSslError = false;
@@ -1048,7 +1205,7 @@ class HttpClient {
         });
     }
 }
-exports.eN = HttpClient;
+exports.HttpClient = HttpClient;
 
 
 /***/ }),
@@ -1433,7 +1590,7 @@ function setup(env) {
 
 	/**
 	* Selects a color for a debug namespace
-	* @param {String} namespace The namespace string for the for the debug instance to be colored
+	* @param {String} namespace The namespace string for the debug instance to be colored
 	* @return {Number|String} An ANSI color code for the given namespace
 	* @api private
 	*/
@@ -1699,8 +1856,8 @@ if (typeof process === 'undefined' || process.type === 'renderer' || process.bro
  * Module dependencies.
  */
 
-const tty = __nccwpck_require__(867);
-const util = __nccwpck_require__(669);
+const tty = __nccwpck_require__(224);
+const util = __nccwpck_require__(837);
 
 /**
  * This is the Node.js implementation of `debug()`.
@@ -2167,7 +2324,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ripGrep = void 0;
-const child_process_1 = __nccwpck_require__(129);
+const child_process_1 = __nccwpck_require__(81);
 const debug_1 = __importDefault(__nccwpck_require__(237));
 const types_1 = __nccwpck_require__(374);
 __exportStar(__nccwpck_require__(374), exports);
@@ -2265,8 +2422,8 @@ exports.RipGrepError = RipGrepError;
 
 "use strict";
 
-const os = __nccwpck_require__(87);
-const tty = __nccwpck_require__(867);
+const os = __nccwpck_require__(37);
+const tty = __nccwpck_require__(224);
 const hasFlag = __nccwpck_require__(621);
 
 const {env} = process;
@@ -2417,13 +2574,13 @@ module.exports = __nccwpck_require__(219);
 "use strict";
 
 
-var net = __nccwpck_require__(631);
-var tls = __nccwpck_require__(16);
-var http = __nccwpck_require__(605);
-var https = __nccwpck_require__(211);
-var events = __nccwpck_require__(614);
-var assert = __nccwpck_require__(357);
-var util = __nccwpck_require__(669);
+var net = __nccwpck_require__(808);
+var tls = __nccwpck_require__(404);
+var http = __nccwpck_require__(685);
+var https = __nccwpck_require__(687);
+var events = __nccwpck_require__(361);
+var assert = __nccwpck_require__(491);
+var util = __nccwpck_require__(837);
 
 
 exports.httpOverHttp = httpOverHttp;
@@ -2683,499 +2840,165 @@ exports.debug = debug; // for test
 
 /***/ }),
 
-/***/ 357:
-/***/ ((module) => {
+/***/ 273:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
-module.exports = require("assert");
 
-/***/ }),
-
-/***/ 129:
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("child_process");
-
-/***/ }),
-
-/***/ 614:
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("events");
-
-/***/ }),
-
-/***/ 747:
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("fs");
-
-/***/ }),
-
-/***/ 605:
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("http");
-
-/***/ }),
-
-/***/ 211:
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("https");
-
-/***/ }),
-
-/***/ 631:
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("net");
-
-/***/ }),
-
-/***/ 87:
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("os");
-
-/***/ }),
-
-/***/ 622:
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("path");
-
-/***/ }),
-
-/***/ 16:
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("tls");
-
-/***/ }),
-
-/***/ 867:
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("tty");
-
-/***/ }),
-
-/***/ 669:
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("util");
-
-/***/ })
-
-/******/ 	});
-/************************************************************************/
-/******/ 	// The module cache
-/******/ 	var __webpack_module_cache__ = {};
-/******/ 	
-/******/ 	// The require function
-/******/ 	function __nccwpck_require__(moduleId) {
-/******/ 		// Check if module is in cache
-/******/ 		var cachedModule = __webpack_module_cache__[moduleId];
-/******/ 		if (cachedModule !== undefined) {
-/******/ 			return cachedModule.exports;
-/******/ 		}
-/******/ 		// Create a new module (and put it into the cache)
-/******/ 		var module = __webpack_module_cache__[moduleId] = {
-/******/ 			// no module.id needed
-/******/ 			// no module.loaded needed
-/******/ 			exports: {}
-/******/ 		};
-/******/ 	
-/******/ 		// Execute the module function
-/******/ 		var threw = true;
-/******/ 		try {
-/******/ 			__webpack_modules__[moduleId].call(module.exports, module, module.exports, __nccwpck_require__);
-/******/ 			threw = false;
-/******/ 		} finally {
-/******/ 			if(threw) delete __webpack_module_cache__[moduleId];
-/******/ 		}
-/******/ 	
-/******/ 		// Return the exports of the module
-/******/ 		return module.exports;
-/******/ 	}
-/******/ 	
-/************************************************************************/
-/******/ 	/* webpack/runtime/compat get default export */
-/******/ 	(() => {
-/******/ 		// getDefaultExport function for compatibility with non-harmony modules
-/******/ 		__nccwpck_require__.n = (module) => {
-/******/ 			var getter = module && module.__esModule ?
-/******/ 				() => (module['default']) :
-/******/ 				() => (module);
-/******/ 			__nccwpck_require__.d(getter, { a: getter });
-/******/ 			return getter;
-/******/ 		};
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/define property getters */
-/******/ 	(() => {
-/******/ 		// define getter functions for harmony exports
-/******/ 		__nccwpck_require__.d = (exports, definition) => {
-/******/ 			for(var key in definition) {
-/******/ 				if(__nccwpck_require__.o(definition, key) && !__nccwpck_require__.o(exports, key)) {
-/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
-/******/ 				}
-/******/ 			}
-/******/ 		};
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
-/******/ 	(() => {
-/******/ 		__nccwpck_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/make namespace object */
-/******/ 	(() => {
-/******/ 		// define __esModule on exports
-/******/ 		__nccwpck_require__.r = (exports) => {
-/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
-/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
-/******/ 			}
-/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
-/******/ 		};
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/compat */
-/******/ 	
-/******/ 	if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = __dirname + "/";
-/******/ 	
-/************************************************************************/
-var __webpack_exports__ = {};
-// This entry need to be wrapped in an IIFE because it need to be in strict mode.
-(() => {
-"use strict";
-// ESM COMPAT FLAG
-__nccwpck_require__.r(__webpack_exports__);
-
-// EXTERNAL MODULE: ./node_modules/@actions/core/lib/core.js
-var core = __nccwpck_require__(186);
-// EXTERNAL MODULE: external "fs"
-var external_fs_ = __nccwpck_require__(747);
-var external_fs_default = /*#__PURE__*/__nccwpck_require__.n(external_fs_);
-;// CONCATENATED MODULE: external "crypto"
-const external_crypto_namespaceObject = require("crypto");
-var external_crypto_default = /*#__PURE__*/__nccwpck_require__.n(external_crypto_namespaceObject);
-// EXTERNAL MODULE: ./node_modules/ripgrep-js/dist/index.js
-var dist = __nccwpck_require__(907);
-;// CONCATENATED MODULE: ./src/nowsecure-sarif.ts
 /*
  * Copyright © 2021 NowSecure Inc.
  *
  * SPDX-License-Identifier: MIT
  */
-
-
-/**
- * Take the SHA256 of an input string and output in hex.
- */
-function sha256(input) {
-    return external_crypto_default().createHash("sha256").update(input).digest("hex");
-}
-/**
- * Convert NowSecure severity to a SARIF notification level.
- */
-function severityToNotification(input) {
-    if (input === "info") {
-        return "note";
-    }
-    else if (input === "medium") {
-        return "warning";
-    }
-    else if (input === "low") {
-        return "warning";
-    }
-    else if (input === "high") {
-        return "error";
-    }
-    else {
-        // NOTE: In practice, this should never happen.
-        return "note";
-    }
-}
-/**
- * Convert a Platform report to Sarif.
- *
- * The data **must** be provided from the GraphQL query in the root of the repository,
- * otherwise data may be missing, in which case the behavior of this function
- * is undefined.
- */
-async function convertToSarif(data) {
-    const report = data.data.auto.assessments[0].report;
-    if (!report) {
-        throw new Error("No report data");
-    }
-    const rules = [];
-    for (const finding of report.findings) {
-        if (!finding.affected)
-            continue;
-        let markdown = "";
-        let issueSummary = "No issue description available.\n";
-        if (finding.summary) {
-            issueSummary = finding.summary;
-        }
-        const tags = [];
-        const issue = finding.check.issue;
-        if (issue) {
-            if (issue.category) {
-                tags.push(issue.category);
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const core = __importStar(__nccwpck_require__(186));
+const fs_1 = __importStar(__nccwpck_require__(147));
+const nowsecure_sarif_1 = __nccwpck_require__(475);
+const nowsecure_client_1 = __nccwpck_require__(619);
+const util_1 = __nccwpck_require__(837);
+const { writeFile } = fs_1.promises;
+const sleep = (0, util_1.promisify)(setTimeout);
+function run() {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            const apiUrl = core.getInput("api_url");
+            const labApiUrl = core.getInput("lab_api_url");
+            const platformToken = core.getInput("token");
+            const ns = new nowsecure_client_1.NowSecure(apiUrl, labApiUrl, platformToken);
+            let reportId = core.getInput("report_id");
+            if (reportId) {
+                const report = yield ns.pullReport(reportId);
+                const log = yield (0, nowsecure_sarif_1.convertToSarif)(report);
+                yield writeFile("NowSecure.sarif", JSON.stringify(log));
+                return;
             }
-            if (issue.cvss) {
-                tags.push(`CVSS-${issue.cvss.toFixed(2)}`);
+            const groupId = core.getInput("group_id");
+            const appFile = core.getInput("app_file");
+            const headstart = parseInt(core.getInput("headstart_ms"), 10);
+            const pollInterval = parseInt(core.getInput("poll_interval_ms"), 10);
+            const details = yield ns.submitBin(fs_1.default.createReadStream(appFile), groupId);
+            reportId = details.ref;
+            if (reportId === undefined) {
+                throw new Error(`NowSecure assessment submission failed: ${JSON.stringify(details)}`);
             }
-            if (issue.impactSummary) {
-                markdown += `## Business Impact\n${issue.impactSummary}\n`;
-            }
-            if (issue.stepsToReproduce) {
-                markdown += `## Steps to Reproduce\n${issue.stepsToReproduce}\n`;
-            }
-            if (issue.recommendation || issue.codeSamples || issue.guidanceLinks) {
-                markdown += "## Remediation Resources\n";
-            }
-            if (issue.recommendation) {
-                markdown += `### Recommended Fix\n${issue.recommendation}\n`;
-            }
-            if (issue.codeSamples && issue.codeSamples.length !== 0) {
-                markdown += "## Code Samples\n";
-                for (const codeSample of issue.codeSamples) {
-                    markdown += "<details>\n";
-                    markdown += `<summary>${codeSample.caption} (click to expand)</summary>\n\n`;
-                    markdown += "```";
-                    if (codeSample.syntax) {
-                        markdown += codeSample.syntax;
-                    }
-                    markdown += "\n";
-                    markdown += codeSample.block;
-                    markdown += "\n```\n";
-                    markdown += "</details>\n";
-                }
-            }
-            markdown += "\n";
-            if (issue.guidanceLinks && issue.guidanceLinks.length !== 0) {
-                markdown += "## Additional Guidance\n";
-                for (const guidanceLink of issue.guidanceLinks) {
-                    markdown += `* ${guidanceLink.caption} ${guidanceLink.url}\n`;
-                }
-            }
-            markdown += "\n";
-        }
-        // Format NowSecure evidence in a Markdown table, when possible.
-        const context = finding.context;
-        if (context && context.rows && context.rows.length > 0) {
-            // Markdown tables look like:
-            // |A|B|C|
-            let markdownHeader = "|";
-            // |-|-|-|
-            let markdownDivider = "|";
-            // If the key for "A" is "a", then it will be the first
-            // entry in the ordering list, so on...
-            const ordering = [];
-            for (const fieldName of Object.keys(context.fields)) {
-                const fieldTitle = context.fields[fieldName].title;
-                markdownHeader += `${fieldTitle}|`;
-                markdownDivider += `-|`;
-                ordering.push(fieldName);
-            }
-            markdown += markdownHeader + "\n";
-            markdown += markdownDivider + "\n";
-            // For each row, insert keys in the order specified in "ordering".
-            for (const row of context.rows) {
-                markdown += "|";
-                for (const key of ordering) {
-                    let data = row[key];
-                    if (typeof data !== "string") {
-                        data = JSON.stringify(data);
-                    }
-                    markdown += "```` " + data + " ````" + "|";
-                }
-                markdown += "\n";
-            }
-        }
-        rules.push({
-            id: sha256(finding.key),
-            name: finding.title,
-            helpUri: "https://nowsecure.com/",
-            shortDescription: {
-                text: finding.title,
-            },
-            fullDescription: {
-                text: issueSummary,
-            },
-            defaultConfiguration: {
-                level: severityToNotification(finding.severity),
-            },
-            properties: {
-                problem: {
-                    severity: finding.severity,
-                },
-                tags,
-                precision: "medium",
-            },
-            help: {
-                // NOTE: In practice this should not display on the GitHub UI.
-                text: "NowSecure only provides recommendations in a Markdown format.",
-                markdown,
-            },
-        });
-    }
-    const results = [];
-    for (const finding of report.findings) {
-        if (!finding.affected)
-            continue;
-        const issue = finding.check.issue;
-        let issueDescription = "No issue description available\n";
-        if (issue && issue.description) {
-            issueDescription = issue.description;
-        }
-        // If we are missing a specialized result for a rule, show the "simple"
-        // result that does not show detailed line number information (refer to the
-        // evidence table instead).
-        const simpleResult = {
-            ruleId: sha256(finding.key),
-            message: {
-                // Markdown doesn't work here. We render our information in the "help"
-                // field in the reporting descriptor.
-                text: issueDescription,
-            },
-            locations: [
-                {
-                    // We don't have line number information so instead produce phony
-                    // information for a file that does not exist.
-                    physicalLocation: {
-                        artifactLocation: {
-                            uri: "Unknown",
-                            uriBaseId: "%SRCROOT%",
-                        },
-                        region: {
-                            startLine: 1,
-                            endLine: 1,
-                            byteOffset: 0,
-                            byteLength: 0,
-                        },
-                    },
-                },
-            ],
-        };
-        // FIXME: This should be refactored out and abstracted.
-        const localResults = [];
-        if (finding.key == "path_traversal") {
-            const context = finding.context;
-            if (context && context.rows && context.rows.length > 0) {
-                for (const row of context.rows) {
-                    const name = row.name;
-                    const namespace = name.split(".");
-                    if (namespace.length > 0) {
-                        const [className] = namespace.slice(-1);
-                        // NOTE: Source mapping works for Java and Kotlin ONLY.
-                        const locations = await searchLocations(`class ${className}`);
-                        for (const physicalLocation of locations) {
-                            localResults.push({
-                                ruleId: sha256(finding.key),
-                                message: {
-                                    text: issueDescription,
-                                },
-                                locations: [
-                                    {
-                                        physicalLocation,
-                                    },
-                                ],
-                            });
-                        }
+            console.log(`NowSecure assessment started. Report ID: ${reportId}`);
+            // Give Platform a head start.
+            yield sleep(headstart);
+            // Poll Platform to resolve the report ID to a report.
+            // GitHub Actions will handle the timeout for us in the event something goes awry.
+            let report = null;
+            for (;;) {
+                console.log("Checking for NowSecure report...");
+                report = yield ns.pullReport(reportId);
+                // NOTE: No optional chaining on Node.js 12 in GitHub Actions.
+                try {
+                    if (report.data.auto.assessments[0].report) {
+                        break;
                     }
                 }
+                catch (_a) {
+                    // No report data.
+                }
+                yield sleep(pollInterval);
             }
+            console.log("Found NowSecure report, converting to SARIF...");
+            const log = yield (0, nowsecure_sarif_1.convertToSarif)(report);
+            yield writeFile("NowSecure.sarif", JSON.stringify(log));
+            console.log("Done.");
         }
-        if (localResults.length !== 0) {
-            results.push(...localResults);
+        catch (e) {
+            console.error(e);
+            core.setFailed(e.message);
         }
-        else {
-            results.push(simpleResult);
-        }
-    }
-    const run = {
-        tool: {
-            driver: {
-                name: "NowSecure",
-                informationUri: "https://www.nowsecure.com/",
-                semanticVersion: "1.0.0",
-                rules,
-            },
-        },
-        results,
-    };
-    const log = {
-        $schema: "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json",
-        version: "2.1.0",
-        runs: [run],
-    };
-    return log;
+    });
 }
-function strip(name) {
-    return name.replace(/[^0-9a-z-_\s]/gi, "");
-}
-/*
- * Search the codebase for a string and return a physical location that corresponds
- * to it.
- */
-async function searchLocations(name) {
-    let results;
-    try {
-        results = await (0,dist.ripGrep)("./", `"${strip(name)}"`);
-    }
-    catch (e) {
-        const error = e;
-        console.log(`Error: ripgrep: ${error.message}: ${error.stderr}`);
-        console.log("Note: ripgrep is required for line-number identification. On Ubuntu-based distributions use `apt-get install -y ripgrep` before running the NowSecure action");
-        return [];
-    }
-    const locations = [];
-    for (const result of results) {
-        locations.push({
-            artifactLocation: {
-                uri: result.path.text,
-                uriBaseId: "%SRCROOT%",
-            },
-            region: {
-                startLine: result.line_number,
-                endLine: result.line_number,
-                byteOffset: 0,
-                byteLength: 0,
-            },
-        });
-    }
-    return locations;
-}
+run();
 
-// EXTERNAL MODULE: ./node_modules/@actions/http-client/index.js
-var http_client = __nccwpck_require__(925);
-;// CONCATENATED MODULE: ./src/nowsecure-version.ts
-// generated by genversion
-const version = "1.0.0";
 
-;// CONCATENATED MODULE: ./src/nowsecure-client.ts
+/***/ }),
+
+/***/ 619:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
 /*
  * Copyright © 2021 NowSecure Inc.
  *
  * SPDX-License-Identifier: MIT
  */
-
-
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __classPrivateFieldSet = (this && this.__classPrivateFieldSet) || function (receiver, state, value, kind, f) {
+    if (kind === "m") throw new TypeError("Private method is not writable");
+    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
+    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
+    return (kind === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value)), value;
+};
+var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (receiver, state, kind, f) {
+    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
+    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
+    return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
+};
+var _NowSecure_client, _NowSecure_apiUrl, _NowSecure_labApiUrl;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.NowSecure = void 0;
+const http = __importStar(__nccwpck_require__(925));
+const nowsecure_version_1 = __nccwpck_require__(328);
 /**
  * GraphQL request for Platform.
  *
@@ -3224,13 +3047,13 @@ const platformGql = (reportId) => `query {
   }
 }`;
 class NowSecure {
-    #client;
-    #apiUrl;
-    #labApiUrl;
     constructor(apiUrl, labApiUrl, platformToken) {
-        this.#apiUrl = apiUrl;
-        this.#labApiUrl = labApiUrl;
-        this.#client = new http_client/* HttpClient */.eN(`NowSecure GitHub Action/${version}`, undefined, {
+        _NowSecure_client.set(this, void 0);
+        _NowSecure_apiUrl.set(this, void 0);
+        _NowSecure_labApiUrl.set(this, void 0);
+        __classPrivateFieldSet(this, _NowSecure_apiUrl, apiUrl, "f");
+        __classPrivateFieldSet(this, _NowSecure_labApiUrl, labApiUrl, "f");
+        __classPrivateFieldSet(this, _NowSecure_client, new http.HttpClient(`NowSecure GitHub Action/${nowsecure_version_1.version}`, undefined, {
             allowRetries: true,
             maxRetries: 3,
             headers: {
@@ -3238,108 +3061,521 @@ class NowSecure {
                 Accept: "application/json",
                 "Content-Type": "application/json",
             },
-        });
+        }), "f");
     }
     /**
      * Pulls a report from NowSecure. Throws an exception if an error occurs.
      */
-    async pullReport(reportId) {
-        const r = await this.#client.postJson(`${this.#apiUrl}/graphql`, {
-            operationName: null,
-            variables: {},
-            query: platformGql(reportId),
+    pullReport(reportId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const r = yield __classPrivateFieldGet(this, _NowSecure_client, "f").postJson(`${__classPrivateFieldGet(this, _NowSecure_apiUrl, "f")}/graphql`, {
+                operationName: null,
+                variables: {},
+                query: platformGql(reportId),
+            });
+            if (r.statusCode !== 200) {
+                throw new Error(`Report request failed with status ${r.statusCode}`);
+            }
+            return r.result;
         });
-        if (r.statusCode !== 200) {
-            throw new Error(`Report request failed with status ${r.statusCode}`);
-        }
-        return r.result;
     }
     /**
      * Upload an application binary stream to NowSecure Platform and return job
      * details. Throws an exception if an error occurs.
      */
-    async submitBin(stream, groupId) {
-        const r = await this.#client.sendStream("POST", `${this.#labApiUrl}/build/?group=${groupId}`, stream, {});
-        if (r.message.statusCode !== 200) {
-            throw new Error(`Application upload failed with status ${r.message.statusCode}`);
-        }
-        const body = await r.readBody();
-        return JSON.parse(body);
+    submitBin(stream, groupId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const r = yield __classPrivateFieldGet(this, _NowSecure_client, "f").sendStream("POST", `${__classPrivateFieldGet(this, _NowSecure_labApiUrl, "f")}/build/?group=${groupId}`, stream, {});
+            if (r.message.statusCode !== 200) {
+                throw new Error(`Application upload failed with status ${r.message.statusCode}`);
+            }
+            const body = yield r.readBody();
+            return JSON.parse(body);
+        });
     }
 }
+exports.NowSecure = NowSecure;
+_NowSecure_client = new WeakMap(), _NowSecure_apiUrl = new WeakMap(), _NowSecure_labApiUrl = new WeakMap();
 
-// EXTERNAL MODULE: external "util"
-var external_util_ = __nccwpck_require__(669);
-;// CONCATENATED MODULE: ./src/nowsecure-action.ts
+
+/***/ }),
+
+/***/ 475:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
 /*
  * Copyright © 2021 NowSecure Inc.
  *
  * SPDX-License-Identifier: MIT
  */
-
-
-
-
-
-const { writeFile } = external_fs_.promises;
-const sleep = (0,external_util_.promisify)(setTimeout);
-async function run() {
-    try {
-        const apiUrl = core.getInput("api_url");
-        const labApiUrl = core.getInput("lab_api_url");
-        const platformToken = core.getInput("token");
-        const ns = new NowSecure(apiUrl, labApiUrl, platformToken);
-        let reportId = core.getInput("report_id");
-        if (reportId) {
-            const report = await ns.pullReport(reportId);
-            const log = await convertToSarif(report);
-            await writeFile("NowSecure.sarif", JSON.stringify(log));
-            return;
-        }
-        const groupId = core.getInput("group_id");
-        const appFile = core.getInput("app_file");
-        const headstart = parseInt(core.getInput("headstart_ms"), 10);
-        const pollInterval = parseInt(core.getInput("poll_interval_ms"), 10);
-        const details = await ns.submitBin(external_fs_default().createReadStream(appFile), groupId);
-        reportId = details.ref;
-        if (reportId === undefined) {
-            throw new Error(`NowSecure assessment submission failed: ${JSON.stringify(details)}`);
-        }
-        console.log(`NowSecure assessment started. Report ID: ${reportId}`);
-        // Give Platform a head start.
-        await sleep(headstart);
-        // Poll Platform to resolve the report ID to a report.
-        // GitHub Actions will handle the timeout for us in the event something goes awry.
-        let report = null;
-        for (;;) {
-            console.log("Checking for NowSecure report...");
-            report = await ns.pullReport(reportId);
-            // NOTE: No optional chaining on Node.js 12 in GitHub Actions.
-            try {
-                if (report.data.auto.assessments[0].report) {
-                    break;
-                }
-            }
-            catch {
-                // No report data.
-            }
-            await sleep(pollInterval);
-        }
-        console.log("Found NowSecure report, converting to SARIF...");
-        const log = await convertToSarif(report);
-        await writeFile("NowSecure.sarif", JSON.stringify(log));
-        console.log("Done.");
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.convertToSarif = void 0;
+const crypto_1 = __importDefault(__nccwpck_require__(113));
+const ripgrep_js_1 = __nccwpck_require__(907);
+/**
+ * Take the SHA256 of an input string and output in hex.
+ */
+function sha256(input) {
+    return crypto_1.default.createHash("sha256").update(input).digest("hex");
+}
+/**
+ * Convert NowSecure severity to a SARIF notification level.
+ */
+function severityToNotification(input) {
+    if (input === "info") {
+        return "note";
     }
-    catch (e) {
-        console.error(e);
-        core.setFailed(e.message);
+    else if (input === "medium") {
+        return "warning";
+    }
+    else if (input === "low") {
+        return "warning";
+    }
+    else if (input === "high") {
+        return "error";
+    }
+    else {
+        // NOTE: In practice, this should never happen.
+        return "note";
     }
 }
-run();
+/**
+ * Convert a Platform report to Sarif.
+ *
+ * The data **must** be provided from the GraphQL query in the root of the repository,
+ * otherwise data may be missing, in which case the behavior of this function
+ * is undefined.
+ */
+function convertToSarif(data) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const report = data.data.auto.assessments[0].report;
+        if (!report) {
+            throw new Error("No report data");
+        }
+        const rules = [];
+        for (const finding of report.findings) {
+            if (!finding.affected)
+                continue;
+            let markdown = "";
+            let issueSummary = "No issue description available.\n";
+            if (finding.summary) {
+                issueSummary = finding.summary;
+            }
+            const tags = [];
+            const issue = finding.check.issue;
+            if (issue) {
+                if (issue.category) {
+                    tags.push(issue.category);
+                }
+                if (issue.cvss) {
+                    tags.push(`CVSS-${issue.cvss.toFixed(2)}`);
+                }
+                if (issue.impactSummary) {
+                    markdown += `## Business Impact\n${issue.impactSummary}\n`;
+                }
+                if (issue.stepsToReproduce) {
+                    markdown += `## Steps to Reproduce\n${issue.stepsToReproduce}\n`;
+                }
+                if (issue.recommendation || issue.codeSamples || issue.guidanceLinks) {
+                    markdown += "## Remediation Resources\n";
+                }
+                if (issue.recommendation) {
+                    markdown += `### Recommended Fix\n${issue.recommendation}\n`;
+                }
+                if (issue.codeSamples && issue.codeSamples.length !== 0) {
+                    markdown += "## Code Samples\n";
+                    for (const codeSample of issue.codeSamples) {
+                        markdown += "<details>\n";
+                        markdown += `<summary>${codeSample.caption} (click to expand)</summary>\n\n`;
+                        markdown += "```";
+                        if (codeSample.syntax) {
+                            markdown += codeSample.syntax;
+                        }
+                        markdown += "\n";
+                        markdown += codeSample.block;
+                        markdown += "\n```\n";
+                        markdown += "</details>\n";
+                    }
+                }
+                markdown += "\n";
+                if (issue.guidanceLinks && issue.guidanceLinks.length !== 0) {
+                    markdown += "## Additional Guidance\n";
+                    for (const guidanceLink of issue.guidanceLinks) {
+                        markdown += `* ${guidanceLink.caption} ${guidanceLink.url}\n`;
+                    }
+                }
+                markdown += "\n";
+            }
+            // Format NowSecure evidence in a Markdown table, when possible.
+            const context = finding.context;
+            if (context && context.rows && context.rows.length > 0) {
+                // Markdown tables look like:
+                // |A|B|C|
+                let markdownHeader = "|";
+                // |-|-|-|
+                let markdownDivider = "|";
+                // If the key for "A" is "a", then it will be the first
+                // entry in the ordering list, so on...
+                const ordering = [];
+                for (const fieldName of Object.keys(context.fields)) {
+                    const fieldTitle = context.fields[fieldName].title;
+                    markdownHeader += `${fieldTitle}|`;
+                    markdownDivider += `-|`;
+                    ordering.push(fieldName);
+                }
+                markdown += markdownHeader + "\n";
+                markdown += markdownDivider + "\n";
+                // For each row, insert keys in the order specified in "ordering".
+                for (const row of context.rows) {
+                    markdown += "|";
+                    for (const key of ordering) {
+                        let data = row[key];
+                        if (typeof data !== "string") {
+                            data = JSON.stringify(data);
+                        }
+                        markdown += "```` " + data + " ````" + "|";
+                    }
+                    markdown += "\n";
+                }
+            }
+            rules.push({
+                id: sha256(finding.key),
+                name: finding.title,
+                helpUri: "https://nowsecure.com/",
+                shortDescription: {
+                    text: finding.title,
+                },
+                fullDescription: {
+                    text: issueSummary,
+                },
+                defaultConfiguration: {
+                    level: severityToNotification(finding.severity),
+                },
+                properties: {
+                    problem: {
+                        severity: finding.severity,
+                    },
+                    tags,
+                    precision: "medium",
+                },
+                help: {
+                    // NOTE: In practice this should not display on the GitHub UI.
+                    text: "NowSecure only provides recommendations in a Markdown format.",
+                    markdown,
+                },
+            });
+        }
+        const results = [];
+        for (const finding of report.findings) {
+            if (!finding.affected)
+                continue;
+            const issue = finding.check.issue;
+            let issueDescription = "No issue description available\n";
+            if (issue && issue.description) {
+                issueDescription = issue.description;
+            }
+            // If we are missing a specialized result for a rule, show the "simple"
+            // result that does not show detailed line number information (refer to the
+            // evidence table instead).
+            const simpleResult = {
+                ruleId: sha256(finding.key),
+                message: {
+                    // Markdown doesn't work here. We render our information in the "help"
+                    // field in the reporting descriptor.
+                    text: issueDescription,
+                },
+                locations: [
+                    {
+                        // We don't have line number information so instead produce phony
+                        // information for a file that does not exist.
+                        physicalLocation: {
+                            artifactLocation: {
+                                uri: "Unknown",
+                                uriBaseId: "%SRCROOT%",
+                            },
+                            region: {
+                                startLine: 1,
+                                endLine: 1,
+                                byteOffset: 0,
+                                byteLength: 0,
+                            },
+                        },
+                    },
+                ],
+            };
+            // FIXME: This should be refactored out and abstracted.
+            const localResults = [];
+            if (finding.key == "path_traversal") {
+                const context = finding.context;
+                if (context && context.rows && context.rows.length > 0) {
+                    for (const row of context.rows) {
+                        const name = row.name;
+                        const namespace = name.split(".");
+                        if (namespace.length > 0) {
+                            const [className] = namespace.slice(-1);
+                            // NOTE: Source mapping works for Java and Kotlin ONLY.
+                            const locations = yield searchLocations(`class ${className}`);
+                            for (const physicalLocation of locations) {
+                                localResults.push({
+                                    ruleId: sha256(finding.key),
+                                    message: {
+                                        text: issueDescription,
+                                    },
+                                    locations: [
+                                        {
+                                            physicalLocation,
+                                        },
+                                    ],
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+            if (localResults.length !== 0) {
+                results.push(...localResults);
+            }
+            else {
+                results.push(simpleResult);
+            }
+        }
+        const run = {
+            tool: {
+                driver: {
+                    name: "NowSecure",
+                    informationUri: "https://www.nowsecure.com/",
+                    semanticVersion: "1.0.0",
+                    rules,
+                },
+            },
+            results,
+        };
+        const log = {
+            $schema: "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json",
+            version: "2.1.0",
+            runs: [run],
+        };
+        return log;
+    });
+}
+exports.convertToSarif = convertToSarif;
+function strip(name) {
+    return name.replace(/[^0-9a-z-_\s]/gi, "");
+}
+/*
+ * Search the codebase for a string and return a physical location that corresponds
+ * to it.
+ */
+function searchLocations(name) {
+    return __awaiter(this, void 0, void 0, function* () {
+        let results;
+        try {
+            results = yield (0, ripgrep_js_1.ripGrep)("./", `"${strip(name)}"`);
+        }
+        catch (e) {
+            const error = e;
+            console.log(`Error: ripgrep: ${error.message}: ${error.stderr}`);
+            console.log("Note: ripgrep is required for line-number identification. On Ubuntu-based distributions use `apt-get install -y ripgrep` before running the NowSecure action");
+            return [];
+        }
+        const locations = [];
+        for (const result of results) {
+            locations.push({
+                artifactLocation: {
+                    uri: result.path.text,
+                    uriBaseId: "%SRCROOT%",
+                },
+                region: {
+                    startLine: result.line_number,
+                    endLine: result.line_number,
+                    byteOffset: 0,
+                    byteLength: 0,
+                },
+            });
+        }
+        return locations;
+    });
+}
 
-})();
 
-module.exports = __webpack_exports__;
+/***/ }),
+
+/***/ 328:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.version = void 0;
+// generated by genversion
+exports.version = "1.0.0";
+
+
+/***/ }),
+
+/***/ 491:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("assert");
+
+/***/ }),
+
+/***/ 81:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("child_process");
+
+/***/ }),
+
+/***/ 113:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("crypto");
+
+/***/ }),
+
+/***/ 361:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("events");
+
+/***/ }),
+
+/***/ 147:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("fs");
+
+/***/ }),
+
+/***/ 685:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("http");
+
+/***/ }),
+
+/***/ 687:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("https");
+
+/***/ }),
+
+/***/ 808:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("net");
+
+/***/ }),
+
+/***/ 37:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("os");
+
+/***/ }),
+
+/***/ 17:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("path");
+
+/***/ }),
+
+/***/ 404:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("tls");
+
+/***/ }),
+
+/***/ 224:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("tty");
+
+/***/ }),
+
+/***/ 837:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("util");
+
+/***/ })
+
+/******/ 	});
+/************************************************************************/
+/******/ 	// The module cache
+/******/ 	var __webpack_module_cache__ = {};
+/******/ 	
+/******/ 	// The require function
+/******/ 	function __nccwpck_require__(moduleId) {
+/******/ 		// Check if module is in cache
+/******/ 		var cachedModule = __webpack_module_cache__[moduleId];
+/******/ 		if (cachedModule !== undefined) {
+/******/ 			return cachedModule.exports;
+/******/ 		}
+/******/ 		// Create a new module (and put it into the cache)
+/******/ 		var module = __webpack_module_cache__[moduleId] = {
+/******/ 			// no module.id needed
+/******/ 			// no module.loaded needed
+/******/ 			exports: {}
+/******/ 		};
+/******/ 	
+/******/ 		// Execute the module function
+/******/ 		var threw = true;
+/******/ 		try {
+/******/ 			__webpack_modules__[moduleId].call(module.exports, module, module.exports, __nccwpck_require__);
+/******/ 			threw = false;
+/******/ 		} finally {
+/******/ 			if(threw) delete __webpack_module_cache__[moduleId];
+/******/ 		}
+/******/ 	
+/******/ 		// Return the exports of the module
+/******/ 		return module.exports;
+/******/ 	}
+/******/ 	
+/************************************************************************/
+/******/ 	/* webpack/runtime/compat */
+/******/ 	
+/******/ 	if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = __dirname + "/";
+/******/ 	
+/************************************************************************/
+/******/ 	
+/******/ 	// startup
+/******/ 	// Load entry module and return exports
+/******/ 	// This entry module is referenced by other modules so it can't be inlined
+/******/ 	var __webpack_exports__ = __nccwpck_require__(273);
+/******/ 	module.exports = __webpack_exports__;
+/******/ 	
 /******/ })()
 ;
 //# sourceMappingURL=index.js.map
