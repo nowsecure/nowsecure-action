@@ -6,9 +6,8 @@
   "author": "Keegan Saunders <ksaunders@nowsecure.com>",
   "scripts": {
     "build": "genversion -d --es6 --semi src/nowsecure-version.ts && tsc",
-    "lint": "eslint src/**/*.ts",
+    "lint": "eslint src/**/*.ts && prettier --check **/*.ts",
     "format": "prettier --write .",
-    "format-check": "prettier --check **/*.ts",
     "prepare-release": "yarn build && ncc build -s src/nowsecure-action.ts"
   },
   "devDependencies": {
