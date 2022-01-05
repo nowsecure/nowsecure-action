@@ -9,6 +9,8 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+  workflow_dispatch:
+    branches: [ main ]
 
 jobs:
   # EXAMPLE: Build and upload an Android application to GH artifacts.
