@@ -1,6 +1,6 @@
 {
   "name": "nowsecure-action",
-  "version": "1.0.0",
+  "version": "1.0.3",
   "main": "dist/index.js",
   "license": "MIT",
   "author": "Keegan Saunders <ksaunders@nowsecure.com>",
