@@ -1,5 +1,5 @@
 /*
- * Copyright © 2021 NowSecure Inc.
+ * Copyright © 2021-2022 NowSecure Inc.
  *
  * SPDX-License-Identifier: MIT
  */
@@ -20,6 +20,8 @@ const platformGql = (reportId: string): string => `query {
   auto {
     assessments(scope:"*" refs:["${reportId.replace(/[^0-9a-z-]/gi, "")}"]) {
       packageKey
+      taskId
+      applicationRef
       ref
       report {
         findings {

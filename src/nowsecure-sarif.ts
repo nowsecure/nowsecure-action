@@ -51,8 +51,13 @@ function severityToNotification(input: string): Notification.level {
  * otherwise data may be missing, in which case the behavior of this function
  * is undefined.
  */
-export async function convertToSarif(data: PullReportResponse): Promise<Log> {
-  const report = data.data.auto.assessments[0].report;
+export async function convertToSarif(
+  data: PullReportResponse,
+  labUrl: string
+): Promise<Log> {
+  const assessment = data.data.auto.assessments[0];
+  const { taskId, applicationRef } = assessment;
+  const report = assessment.report;
   if (!report) {
     throw new Error("No report data");
   }
@@ -164,7 +169,7 @@ export async function convertToSarif(data: PullReportResponse): Promise<Log> {
     rules.push({
       id: sha256(finding.key),
       name: finding.title,
-      helpUri: "https://nowsecure.com/",
+      helpUri: `${labUrl}/app/${applicationRef}/assessment/${taskId}#finding-${finding.key}`,
       shortDescription: {
         text: finding.title,
       },

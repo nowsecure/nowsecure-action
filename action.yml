@@ -13,6 +13,10 @@ inputs:
     required: false
     description: "NowSecure Lab API endpoint."
     default: "https://lab-api.nowsecure.com"
+  lab_url:
+    required: false
+    description: "NowSecure Lab URL."
+    default: "https://lab.nowsecure.com"
   app_file:
     required: true
     description: "Application binary to scan on NowSecure. Must be an Android or iOS application."

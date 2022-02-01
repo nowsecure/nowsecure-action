@@ -1,5 +1,5 @@
 /*
- * Copyright © 2021 NowSecure Inc.
+ * Copyright © 2021-2022 NowSecure Inc.
  *
  * SPDX-License-Identifier: MIT
  */
@@ -17,13 +17,14 @@ async function run() {
   try {
     const apiUrl = core.getInput("api_url");
     const labApiUrl = core.getInput("lab_api_url");
+    const labUrl = core.getInput("lab_url");
     const platformToken = core.getInput("token");
     const ns = new NowSecure(apiUrl, labApiUrl, platformToken);
 
     let reportId = core.getInput("report_id");
     if (reportId) {
       const report = await ns.pullReport(reportId);
-      const log = await convertToSarif(report);
+      const log = await convertToSarif(report, labUrl);
       await writeFile("NowSecure.sarif", JSON.stringify(log));
       return;
     }
@@ -67,7 +68,7 @@ async function run() {
 
     console.log("Found NowSecure report, converting to SARIF...");
 
-    const log = await convertToSarif(report);
+    const log = await convertToSarif(report, labUrl);
     await writeFile("NowSecure.sarif", JSON.stringify(log));
 
     console.log("Done.");

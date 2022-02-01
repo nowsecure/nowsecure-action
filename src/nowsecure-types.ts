@@ -1,5 +1,5 @@
 /*
- * Copyright © 2021 NowSecure Inc.
+ * Copyright © 2021-2022 NowSecure Inc.
  *
  * SPDX-License-Identifier: MIT
  */
@@ -53,6 +53,8 @@ export interface PullReportResponse {
 
 export interface Assessment {
   packageKey: string;
+  taskId: string;
+  applicationRef: string;
   ref: string;
   report: Report | null;
 }

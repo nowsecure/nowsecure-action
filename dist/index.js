@@ -2846,7 +2846,7 @@ exports.debug = debug; // for test
 "use strict";
 
 /*
- * Copyright © 2021 NowSecure Inc.
+ * Copyright © 2021-2022 NowSecure Inc.
  *
  * SPDX-License-Identifier: MIT
  */
@@ -2891,12 +2891,13 @@ function run() {
         try {
             const apiUrl = core.getInput("api_url");
             const labApiUrl = core.getInput("lab_api_url");
+            const labUrl = core.getInput("lab_url");
             const platformToken = core.getInput("token");
             const ns = new nowsecure_client_1.NowSecure(apiUrl, labApiUrl, platformToken);
             let reportId = core.getInput("report_id");
             if (reportId) {
                 const report = yield ns.pullReport(reportId);
-                const log = yield (0, nowsecure_sarif_1.convertToSarif)(report);
+                const log = yield (0, nowsecure_sarif_1.convertToSarif)(report, labUrl);
                 yield writeFile("NowSecure.sarif", JSON.stringify(log));
                 return;
             }
@@ -2930,7 +2931,7 @@ function run() {
                 yield sleep(pollInterval);
             }
             console.log("Found NowSecure report, converting to SARIF...");
-            const log = yield (0, nowsecure_sarif_1.convertToSarif)(report);
+            const log = yield (0, nowsecure_sarif_1.convertToSarif)(report, labUrl);
             yield writeFile("NowSecure.sarif", JSON.stringify(log));
             console.log("Done.");
         }
@@ -2951,7 +2952,7 @@ run();
 "use strict";
 
 /*
- * Copyright © 2021 NowSecure Inc.
+ * Copyright © 2021-2022 NowSecure Inc.
  *
  * SPDX-License-Identifier: MIT
  */
@@ -3008,6 +3009,8 @@ const platformGql = (reportId) => `query {
   auto {
     assessments(scope:"*" refs:["${reportId.replace(/[^0-9a-z-]/gi, "")}"]) {
       packageKey
+      taskId
+      applicationRef
       ref
       report {
         findings {
@@ -3161,9 +3164,11 @@ function severityToNotification(input) {
  * otherwise data may be missing, in which case the behavior of this function
  * is undefined.
  */
-function convertToSarif(data) {
+function convertToSarif(data, labUrl) {
     return __awaiter(this, void 0, void 0, function* () {
-        const report = data.data.auto.assessments[0].report;
+        const assessment = data.data.auto.assessments[0];
+        const { taskId, applicationRef } = assessment;
+        const report = assessment.report;
         if (!report) {
             throw new Error("No report data");
         }
@@ -3256,7 +3261,7 @@ function convertToSarif(data) {
             rules.push({
                 id: sha256(finding.key),
                 name: finding.title,
-                helpUri: "https://nowsecure.com/",
+                helpUri: `${labUrl}/app/${applicationRef}/assessment/${taskId}#finding-${finding.key}`,
                 shortDescription: {
                     text: finding.title,
                 },
