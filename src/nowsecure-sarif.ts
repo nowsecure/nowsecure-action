@@ -1,5 +1,5 @@
 /*
- * Copyright © 2021 NowSecure Inc.
+ * Copyright © 2021-2022 NowSecure Inc.
  *
  * SPDX-License-Identifier: MIT
  */
@@ -15,6 +15,9 @@ import type {
 import crypto from "crypto";
 import type { PullReportResponse } from "./nowsecure-types";
 import { ripGrep as rg, RipGrepError } from "ripgrep-js";
+
+const SARIF_SCHEMA_URL =
+  "https://raw.githubusercontent.com/schemastore/schemastore/master/src/schemas/json/sarif-2.1.0-rtm.5.json";
 
 /**
  * Take the SHA256 of an input string and output in hex.
@@ -279,8 +282,7 @@ export async function convertToSarif(data: PullReportResponse): Promise<Log> {
   };
 
   const log: Log = {
-    $schema:
-      "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json",
+    $schema: SARIF_SCHEMA_URL,
     version: "2.1.0",
     runs: [run],
   };

@@ -3106,7 +3106,7 @@ _NowSecure_client = new WeakMap(), _NowSecure_apiUrl = new WeakMap(), _NowSecure
 "use strict";
 
 /*
- * Copyright © 2021 NowSecure Inc.
+ * Copyright © 2021-2022 NowSecure Inc.
  *
  * SPDX-License-Identifier: MIT
  */
@@ -3126,6 +3126,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.convertToSarif = void 0;
 const crypto_1 = __importDefault(__nccwpck_require__(113));
 const ripgrep_js_1 = __nccwpck_require__(907);
+const SARIF_SCHEMA_URL = "https://raw.githubusercontent.com/schemastore/schemastore/master/src/schemas/json/sarif-2.1.0-rtm.5.json";
 /**
  * Take the SHA256 of an input string and output in hex.
  */
@@ -3365,7 +3366,7 @@ function convertToSarif(data) {
             results,
         };
         const log = {
-            $schema: "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json",
+            $schema: SARIF_SCHEMA_URL,
             version: "2.1.0",
             runs: [run],
         };
