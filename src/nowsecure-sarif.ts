@@ -116,7 +116,6 @@ export async function convertToSarif(
       }
 
       if (issue.recommendation || issue.codeSamples || issue.guidanceLinks) {
-        markdown += "## Code Samples\n";
         markdown += "## Remediation Resources\n";
       }
 
