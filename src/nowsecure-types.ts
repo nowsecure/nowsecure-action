@@ -64,7 +64,7 @@ export interface Report {
 }
 
 type FindingType = "static" | "dynamic";
-type Severity = "info" | "medium" | "low" | "high";
+type Severity = "info" | "medium" | "low" | "high" | "critical";
 
 export interface Finding {
   kind: FindingType;

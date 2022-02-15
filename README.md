@@ -45,11 +45,31 @@ After the application build step run the NowSecure action and upload the SARIF t
     token: ${{ secrets.NS_TOKEN }}
     app_file: $APPLICATION_PATH		# REPLACE: The path to an .ipa or .apk
     group_id: $GROUP_ID				# REPLACE: NowSecure Group ID
+    report_id: $REPORT_ID				# (Optional) REPLACE: NowSecure Assessment Ref 
 
-- name: Upload SARIF file
-  uses: github/codeql-action/upload-sarif@v1
+  - name: Upload SARIF file
+    uses: github/codeql-action/upload-sarif@v1
+```
+
+Add a new file called `nowsecure.yml` in your `.github/workflows` folder and review the [example](workflows/nowsecure.yml).
+
+### Custom Configuration (Optional)
+A `.nsconfig` file allows you to configure a minimum-severity filter (the default is medium which includes critical, high, and medium findings), a list of [checkIds](src/utils/config-types.ts) to include, as well as a list of [checkIds](src/utils/config-types.ts) to exclude from the code scanning alerts. 
+
+```yml
+minimum-severity: high # can be one of [critical, high, medium, low, info]
+include-checks:
+  - apk_hardcoded_keys
+  - apk_weak_crypto_methods
+exclude-checks:
+ - android_janus_warn
+```
+
+Once created, update the `nowsecure.yml` with the path to the configuaration file:
+
+```yml
   with:
-    sarif_file: NowSecure.sarif
+    path: '.' # example if nsconfig is located at the root
 ```
 
 For a _new_ workflow,
