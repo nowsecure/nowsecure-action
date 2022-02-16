@@ -48,19 +48,24 @@ function severityToSarif(input: string): Array<string> {
 /**
  * Normalize user inputed config file
  */
-export function getConfig(__path: string | null) {
+export function getConfig(configPath: string) {
   try {
     const checkedConfig = {
       severityFilter: ["critical", "high", "medium"],
     } as configLayout;
 
-    if (!__path) {
+    let customConfig;
+    try {
+      customConfig = YAML.parse(
+        fs.readFileSync(path.join(configPath, ".nsconfig.yml"), "utf8")
+      );
+    } catch (e) {
+      const error = e as Error;
+      console.warn(
+        `Did not find a valid .nsconfig.yml file, ignoring...: ${error.message}`
+      );
       return checkedConfig;
     }
-
-    const customConfig = YAML.parse(
-      fs.readFileSync(path.join(__path, ".nsconfig.yml"), "utf8")
-    );
 
     const include: string[] = customConfig["include-checks"];
     const exclude: string[] = customConfig["exclude-checks"];

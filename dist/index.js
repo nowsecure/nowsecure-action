@@ -3177,7 +3177,7 @@ function severityToNotification(input) {
 }
 function filterFindings(finding) {
     const configPath = core.getInput("config_path");
-    const config = configPath ? (0, config_check_1.getConfig)(configPath) : (0, config_check_1.getConfig)(null);
+    const config = (0, config_check_1.getConfig)(configPath);
     if (config.includeChecks && config.includeChecks.includes(finding.key)) {
         return true;
     }
@@ -3475,6 +3475,11 @@ exports.version = "1.0.3";
 
 "use strict";
 
+/*
+ * Copyright © 2022 NowSecure Inc.
+ *
+ * SPDX-License-Identifier: MIT
+ */
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -3512,15 +3517,20 @@ function severityToSarif(input) {
 /**
  * Normalize user inputed config file
  */
-function getConfig(__path) {
+function getConfig(configPath) {
     try {
         const checkedConfig = {
             severityFilter: ["critical", "high", "medium"],
         };
-        if (!__path) {
+        let customConfig;
+        try {
+            customConfig = yaml_1.default.parse(fs_1.default.readFileSync(path_1.default.join(configPath, ".nsconfig.yml"), "utf8"));
+        }
+        catch (e) {
+            const error = e;
+            console.warn(`Did not find a valid .nsconfig.yml file, ignoring...: ${error.message}`);
             return checkedConfig;
         }
-        const customConfig = yaml_1.default.parse(fs_1.default.readFileSync(path_1.default.join(__path, ".nsconfig.yml"), "utf8"));
         const include = customConfig["include-checks"];
         const exclude = customConfig["exclude-checks"];
         const severityInput = customConfig["minimum-severity"];
@@ -3562,7 +3572,11 @@ exports.getConfig = getConfig;
 
 "use strict";
 
-// export interface customConfig extends Array<Config> {}
+/*
+ * Copyright © 2022 NowSecure Inc.
+ *
+ * SPDX-License-Identifier: MIT
+ */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.checkIds = exports.severity = void 0;
 exports.severity = ["info", "medium", "low", "high", "critical"];
