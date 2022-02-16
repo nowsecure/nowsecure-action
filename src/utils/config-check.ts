@@ -53,7 +53,7 @@ export function getConfig(__path: string | null) {
     }
 
     const customConfig = YAML.parse(
-      fs.readFileSync(path.join(__path, "nsconfig.yml"), "utf8")
+      fs.readFileSync(path.join(__path, ".nsconfig.yml"), "utf8")
     );
 
     const include: string[] = customConfig["include-checks"];

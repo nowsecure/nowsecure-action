@@ -17,12 +17,10 @@ inputs:
     required: false
     description: "NowSecure Lab URL."
     default: "https://lab.nowsecure.com"
-  report_id:
-    required: false 
-    description: "Ref for specific report"
-  path: 
-    required: false 
-    description: "Path to nsconfig.yml"
+  config_path:
+    required: false
+    description: "Path containing .nsconfig.yml"
+    default: "."
   app_file:
     required: true
     description: "Application binary to scan on NowSecure. Must be an Android or iOS application."

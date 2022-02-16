@@ -45,7 +45,7 @@ function severityToNotification(input: string): Notification.level {
 }
 
 function filterFindings(finding: Finding) {
-  const configPath = core.getInput("path");
+  const configPath = core.getInput("config_path");
   const config = configPath ? getConfig(configPath) : getConfig(null);
 
   if (config.includeChecks && config.includeChecks.includes(finding.key)) {

@@ -3176,7 +3176,7 @@ function severityToNotification(input) {
     }
 }
 function filterFindings(finding) {
-    const configPath = core.getInput("path");
+    const configPath = core.getInput("config_path");
     const config = configPath ? (0, config_check_1.getConfig)(configPath) : (0, config_check_1.getConfig)(null);
     if (config.includeChecks && config.includeChecks.includes(finding.key)) {
         return true;
@@ -3211,6 +3211,8 @@ function convertToSarif(data, labUrl) {
         report.findings = report.findings.filter(filterFindings);
         const rules = [];
         for (const finding of report.findings) {
+            if (!finding.affected)
+                continue;
             let markdown = "";
             let issueSummary = "No issue description available.\n";
             if (finding.summary) {
@@ -3238,6 +3240,7 @@ function convertToSarif(data, labUrl) {
                     markdown += `### Recommended Fix\n${issue.recommendation}\n`;
                 }
                 if (issue.codeSamples && issue.codeSamples.length !== 0) {
+                    markdown += "## Code Samples\n";
                     for (const codeSample of issue.codeSamples) {
                         markdown += "<details>\n";
                         markdown += `<summary>${codeSample.caption} (click to expand)</summary>\n\n`;
@@ -3318,6 +3321,8 @@ function convertToSarif(data, labUrl) {
         }
         const results = [];
         for (const finding of report.findings) {
+            if (!finding.affected)
+                continue;
             const issue = finding.check.issue;
             let issueDescription = "No issue description available\n";
             if (issue && issue.description) {
@@ -3515,7 +3520,7 @@ function getConfig(__path) {
         if (!__path) {
             return checkedConfig;
         }
-        const customConfig = yaml_1.default.parse(fs_1.default.readFileSync(path_1.default.join(__path, "nsconfig.yml"), "utf8"));
+        const customConfig = yaml_1.default.parse(fs_1.default.readFileSync(path_1.default.join(__path, ".nsconfig.yml"), "utf8"));
         const include = customConfig["include-checks"];
         const exclude = customConfig["exclude-checks"];
         const severityInput = customConfig["minimum-severity"];
