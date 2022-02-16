@@ -12,9 +12,11 @@ import type {
   Notification,
   PhysicalLocation,
 } from "sarif";
+import * as core from "@actions/core";
 import crypto from "crypto";
-import type { PullReportResponse } from "./nowsecure-types";
+import type { Finding, PullReportResponse } from "./nowsecure-types";
 import { ripGrep as rg, RipGrepError } from "ripgrep-js";
+import { getConfig } from "./utils/config-check";
 
 const SARIF_SCHEMA_URL =
   "https://raw.githubusercontent.com/schemastore/schemastore/master/src/schemas/json/sarif-2.1.0-rtm.5.json";
@@ -30,17 +32,36 @@ function sha256(input: string): string {
  * Convert NowSecure severity to a SARIF notification level.
  */
 function severityToNotification(input: string): Notification.level {
-  if (input === "info") {
-    return "note";
-  } else if (input === "medium") {
-    return "warning";
-  } else if (input === "low") {
-    return "warning";
-  } else if (input === "high") {
+  if (input === "high" || input === "critical") {
     return "error";
+  } else if (input === "medium" || input === "low") {
+    return "warning";
+  } else if (input === "info") {
+    return "note";
   } else {
     // NOTE: In practice, this should never happen.
-    return "note";
+    return "none";
+  }
+}
+
+function filterFindings(finding: Finding) {
+  const configPath = core.getInput("config_path");
+  const config = configPath ? getConfig(configPath) : getConfig(null);
+
+  if (config.includeChecks && config.includeChecks.includes(finding.key)) {
+    return true;
+  } else if (
+    config.excludeChecks &&
+    config.excludeChecks.includes(finding.key)
+  ) {
+    return false;
+  } else if (
+    config.severityFilter.includes(finding.severity) &&
+    finding.affected
+  ) {
+    return true;
+  } else {
+    return false;
   }
 }
 
@@ -58,9 +79,12 @@ export async function convertToSarif(
   const assessment = data.data.auto.assessments[0];
   const { taskId, applicationRef } = assessment;
   const report = assessment.report;
+
   if (!report) {
     throw new Error("No report data");
   }
+
+  report.findings = report.findings.filter(filterFindings);
 
   const rules: ReportingDescriptor[] = [];
   for (const finding of report.findings) {
@@ -176,9 +200,6 @@ export async function convertToSarif(
       fullDescription: {
         text: issueSummary,
       },
-      defaultConfiguration: {
-        level: severityToNotification(finding.severity),
-      },
       properties: {
         problem: {
           severity: finding.severity,
@@ -205,6 +226,7 @@ export async function convertToSarif(
       issueDescription = issue.description;
     }
 
+    const level = severityToNotification(finding.severity);
     // If we are missing a specialized result for a rule, show the "simple"
     // result that does not show detailed line number information (refer to the
     // evidence table instead).
@@ -215,6 +237,7 @@ export async function convertToSarif(
         // field in the reporting descriptor.
         text: issueDescription,
       },
+      level: level,
       locations: [
         {
           // We don't have line number information so instead produce phony
@@ -255,6 +278,7 @@ export async function convertToSarif(
                 message: {
                   text: issueDescription,
                 },
+                level: level,
                 locations: [
                   {
                     physicalLocation,
