@@ -1,0 +1,44 @@
+# Copyright © 2022 NowSecure Inc.
+#
+# SPDX-License-Identifier: MIT
+
+name: NowSecure
+
+on:
+  push:
+    branches:
+      - "*"
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    if: ${{ !github.event.pull_request.head.repo.fork }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Install ripgrep
+        run: sudo apt-get install -y ripgrep
+
+      - name: Get BitBar APK
+        run: |
+          curl -L \
+          https://github.com/bitbar/test-samples/raw/master/apps/android/bitbar-sample-app.apk \
+          -o app.apk
+
+      - name: NowSecure
+        uses: ./
+        timeout-minutes: 90
+        with:
+          token: ${{ secrets.NS_TOKEN }}
+          app_file: app.apk
+          group_id: ${{ secrets.NS_GROUP_ID }}
+
+      - name: Upload SARIF to artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: NowSecure.sarif
+          path: ./NowSecure.sarif
