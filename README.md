@@ -75,3 +75,9 @@ Add a new file called `nowsecure.yml` in your `.github/workflows` folder and rev
 This project is released under the [MIT License](https://github.com/nowsecure/nowsecure-action/blob/master/LICENSE).
 
 NowSecure Platform, used in this action, has separate [Terms and Conditions](https://www.nowsecure.com/terms-and-conditions/) and requires a valid license to function.
+
+## Contributing
+
+Contributions are welcome! See the [Contribution Guide][]
+
+[Contribution Guide]: CONTRIBUTING.md
