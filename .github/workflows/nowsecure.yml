@@ -8,14 +8,10 @@ on:
   push:
     branches:
       - "*"
-  pull_request:
-    branches:
-      - main
 
 jobs:
   scan:
     runs-on: ubuntu-latest
-    if: ${{ !github.event.pull_request.head.repo.fork }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
