@@ -19,7 +19,7 @@ async function run() {
     const labApiUrl = core.getInput("lab_api_url");
     const labUrl = core.getInput("lab_url");
     const platformToken = core.getInput("token");
-    const ns = new NowSecure(apiUrl, labApiUrl, platformToken);
+    const ns = new NowSecure(platformToken, apiUrl, labApiUrl);
 
     let reportId = core.getInput("report_id");
     if (reportId) {

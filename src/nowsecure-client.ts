@@ -11,6 +11,9 @@ import type {
 } from "./nowsecure-types";
 import { version } from "./nowsecure-version";
 
+export const DEFAULT_API_URL = "https://api.nowsecure.com";
+export const DEFAULT_LAB_API_URL = "https://lab-api.nowsecure.com";
+
 /**
  * GraphQL request for Platform.
  *
@@ -66,7 +69,11 @@ export class NowSecure {
   #apiUrl: string;
   #labApiUrl: string;
 
-  constructor(apiUrl: string, labApiUrl: string, platformToken: string) {
+  constructor(
+    platformToken: string,
+    apiUrl: string = DEFAULT_API_URL,
+    labApiUrl: string = DEFAULT_LAB_API_URL
+  ) {
     this.#apiUrl = apiUrl;
     this.#labApiUrl = labApiUrl;
     this.#client = new http.HttpClient(

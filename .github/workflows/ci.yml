@@ -12,12 +12,9 @@ on:
   push:
     branches:
       - "*"
-  pull_request:
-    branches:
-      - main
 
 jobs:
-  lint:
+  check:
     runs-on: ubuntu-latest
     env:
       CI: true
@@ -46,3 +43,5 @@ jobs:
       - run: yarn install --frozen-lockfile --silent
 
       - run: yarn lint
+
+      - run: yarn test
