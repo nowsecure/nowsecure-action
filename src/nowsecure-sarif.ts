@@ -14,7 +14,7 @@ import type {
 } from "sarif";
 import * as core from "@actions/core";
 import crypto from "crypto";
-import type { Finding, PullReportResponse } from "./nowsecure-types";
+import type { Finding, PullReportResponse } from "./types/platform";
 import { ripGrep as rg, RipGrepError } from "ripgrep-js";
 import { getConfig } from "./utils/config-check";
 

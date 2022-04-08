@@ -1,0 +1,61 @@
+{
+  "deputy": "2.4.0",
+  "package": "Example.ipa",
+  "packageType": "iOS",
+  "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "timestamp": 0,
+  "components": [
+    {
+      "ecosystem": "CocoaPods",
+      "name": "ExamplePod1",
+      "homepage": null,
+      "description": null,
+      "mainVersion": "1.0.0",
+      "shortVersion": "1.0.0",
+      "version": "1.0.0",
+      "latest": null,
+      "license": null,
+      "vulnerabilities": [],
+      "vulnerabilitiesFound": 0,
+      "referenceUrl": null,
+      "coordinates": null,
+      "internal": false,
+      "source": "/Podfile.lock"
+    },
+    {
+      "ecosystem": "CocoaPods",
+      "name": "ExamplePod2",
+      "homepage": null,
+      "description": null,
+      "mainVersion": "2.0.0",
+      "shortVersion": "2.0.0",
+      "version": "2.0.0",
+      "latest": null,
+      "license": null,
+      "vulnerabilities": [],
+      "vulnerabilitiesFound": 0,
+      "referenceUrl": null,
+      "coordinates": null,
+      "internal": false,
+      "source": "/Podfile.lock"
+    },
+    {
+      "ecosystem": "CocoaPods",
+      "name": "ExamplePod3",
+      "homepage": null,
+      "description": null,
+      "mainVersion": "3.0.0",
+      "shortVersion": "3.0.0",
+      "version": "3.0.0",
+      "latest": null,
+      "license": null,
+      "vulnerabilities": [],
+      "vulnerabilitiesFound": 0,
+      "referenceUrl": null,
+      "coordinates": null,
+      "internal": false,
+      "source": "/Payload/Example.app/ExampleFramework/Info.plist"
+    }
+  ],
+  "success": true
+}

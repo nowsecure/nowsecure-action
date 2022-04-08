@@ -9,6 +9,7 @@
 import { convertToSarif } from "../nowsecure-sarif";
 import { NowSecure, DEFAULT_API_URL } from "../nowsecure-client";
 import nock from "nock";
+import path from "path";
 
 const platformToken = "AAABBB";
 const assessmentId = "CCCDDD";
@@ -22,7 +23,10 @@ describe("SARIF conversion", () => {
   test("can perform conversion", async () => {
     const scope = nock(DEFAULT_API_URL)
       .post("/graphql")
-      .replyWithFile(200, __dirname + "/resources/response_200.json");
+      .replyWithFile(
+        200,
+        path.join(__dirname, "resources", "response_200.json")
+      );
 
     const report = await ns.pullReport(assessmentId);
     const sarif = await convertToSarif(report);

@@ -1,0 +1,43 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Snapshot conversion can perform conversion 1`] = `
+Object {
+  "detector": Object {
+    "name": "NowSecure",
+    "url": "https://www.nowsecure.com/",
+    "version": "1.1.0",
+  },
+  "job": Object {
+    "correlator": "",
+    "id": "0",
+  },
+  "manifests": Object {
+    "Payload/Example.app/ExampleFramework/Info.plist": Object {
+      "name": "Payload/Example.app/ExampleFramework/Info.plist",
+      "resolved": Object {
+        "ExamplePod3": Object {
+          "package_url": "pkg:cocoapods/ExamplePod3@3.0.0",
+          "relationship": "direct",
+        },
+      },
+    },
+    "Podfile.lock": Object {
+      "name": "Podfile.lock",
+      "resolved": Object {
+        "ExamplePod1": Object {
+          "package_url": "pkg:cocoapods/ExamplePod1@1.0.0",
+          "relationship": "direct",
+        },
+        "ExamplePod2": Object {
+          "package_url": "pkg:cocoapods/ExamplePod2@2.0.0",
+          "relationship": "direct",
+        },
+      },
+    },
+  },
+  "ref": "",
+  "scanned": "2000-01-01T00:00:00.000Z",
+  "sha": "",
+  "version": 0,
+}
+`;
