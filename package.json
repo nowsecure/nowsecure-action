@@ -10,6 +10,9 @@
     "format": "prettier --write .",
     "prepare-release": "yarn build && ncc build -s src/nowsecure-action.ts"
   },
+  "engines": {
+    "node": ">=16"
+  },
   "devDependencies": {
     "@types/node": "17.0.7",
     "@types/sarif": "2.1.4",

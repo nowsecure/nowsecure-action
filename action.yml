@@ -36,7 +36,7 @@ inputs:
     description: "Interval to poll Platform for application details. Default is once a minute."
     default: "60000"
 runs:
-  using: "node12"
+  using: "node16"
   main: "dist/index.js"
 branding:
   icon: alert-triangle
