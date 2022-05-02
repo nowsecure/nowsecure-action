@@ -35,8 +35,23 @@ inputs:
     required: false
     description: "Interval to poll Platform for application details. Default is once a minute."
     default: "60000"
+  enable_sarif:
+    required: false
+    description: "Enable creation of a SARIF file."
+    default: true
+  enable_dependencies:
+    required: false
+    description: "Enable posting of dependencies results to GitHub."
+    default: false
+  github_token:
+    required: false
+    default: ${{ github.token }}
+  github_correlator:
+    required: false
+    description: "Used for the correlator field in the SBOM format. Distinguishes independent Workflows."
+    default: ${{ format('{0}_{1}', github.workflow, github.job) }}
 runs:
-  using: "node12"
+  using: "node16"
   main: "dist/index.js"
 branding:
   icon: alert-triangle

@@ -8,8 +8,12 @@ import * as http from "@actions/http-client";
 import type {
   UploadApplicationResponse,
   PullReportResponse,
-} from "./nowsecure-types";
+} from "./types/platform";
 import { version } from "./nowsecure-version";
+
+export const USER_AGENT = `NowSecure GitHub Action/${version}`;
+export const DEFAULT_API_URL = "https://api.nowsecure.com";
+export const DEFAULT_LAB_API_URL = "https://lab-api.nowsecure.com";
 
 /**
  * GraphQL request for Platform.
@@ -19,6 +23,7 @@ import { version } from "./nowsecure-version";
 const platformGql = (reportId: string): string => `query {
   auto {
     assessments(scope:"*" refs:["${reportId.replace(/[^0-9a-z-]/gi, "")}"]) {
+      deputy: _raw(path: "yaap.complete.results[0].deputy.deputy.data[0].results")
       packageKey
       taskId
       applicationRef
@@ -66,22 +71,22 @@ export class NowSecure {
   #apiUrl: string;
   #labApiUrl: string;
 
-  constructor(apiUrl: string, labApiUrl: string, platformToken: string) {
+  constructor(
+    platformToken: string,
+    apiUrl: string = DEFAULT_API_URL,
+    labApiUrl: string = DEFAULT_LAB_API_URL
+  ) {
     this.#apiUrl = apiUrl;
     this.#labApiUrl = labApiUrl;
-    this.#client = new http.HttpClient(
-      `NowSecure GitHub Action/${version}`,
-      undefined,
-      {
-        allowRetries: true,
-        maxRetries: 3,
-        headers: {
-          Authorization: `Bearer ${platformToken}`,
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    this.#client = new http.HttpClient(USER_AGENT, undefined, {
+      allowRetries: true,
+      maxRetries: 3,
+      headers: {
+        Authorization: `Bearer ${platformToken}`,
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+    });
   }
 
   /**

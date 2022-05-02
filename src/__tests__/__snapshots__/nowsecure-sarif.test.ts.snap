@@ -1,0 +1,79 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SARIF conversion can perform conversion 1`] = `
+Object {
+  "$schema": "https://raw.githubusercontent.com/schemastore/schemastore/master/src/schemas/json/sarif-2.1.0-rtm.5.json",
+  "runs": Array [
+    Object {
+      "results": Array [
+        Object {
+          "level": "warning",
+          "locations": Array [
+            Object {
+              "physicalLocation": Object {
+                "artifactLocation": Object {
+                  "uri": "Unknown",
+                  "uriBaseId": "%SRCROOT%",
+                },
+                "region": Object {
+                  "byteLength": 0,
+                  "byteOffset": 0,
+                  "endLine": 1,
+                  "startLine": 1,
+                },
+              },
+            },
+          ],
+          "message": Object {
+            "text": "This is a descriptive explanation of the example check.",
+          },
+          "ruleId": "f191ce1c463a84925c55738a345e0ad4d6ab9a1d2efd523420ea7cdc695d8429",
+        },
+      ],
+      "tool": Object {
+        "driver": Object {
+          "informationUri": "https://www.nowsecure.com/",
+          "name": "NowSecure",
+          "rules": Array [
+            Object {
+              "fullDescription": Object {
+                "text": "This check is an example check.",
+              },
+              "help": Object {
+                "markdown": "## Business Impact
+This is the impact of the example check.
+## Steps to Reproduce
+These are steps to reproduce the issue.
+## Remediation Resources
+### Recommended Fix
+This is an example recommendation.
+
+
+",
+                "text": "NowSecure only provides recommendations in a Markdown format.",
+              },
+              "helpUri": "https://lab.nowsecure.com/app/00000000-0000-0000-0000-000000000000/assessment/1#finding-example_check",
+              "id": "f191ce1c463a84925c55738a345e0ad4d6ab9a1d2efd523420ea7cdc695d8429",
+              "name": "This Is An Example Check",
+              "properties": Object {
+                "precision": "medium",
+                "problem": Object {
+                  "severity": "medium",
+                },
+                "tags": Array [
+                  "CVSS-10.00",
+                ],
+              },
+              "shortDescription": Object {
+                "text": "This Is An Example Check",
+              },
+            },
+          ],
+          "semanticVersion": "1.0.0",
+        },
+      },
+    },
+  ],
+  "version": "2.1.0",
+}
+`;

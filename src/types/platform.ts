@@ -4,6 +4,8 @@
  * SPDX-License-Identifier: MIT
  */
 
+import type { Deputy } from "./deputy";
+
 export type ApplicationState = "pending" | "processing" | "completed";
 
 /**
@@ -57,6 +59,7 @@ export interface Assessment {
   applicationRef: string;
   ref: string;
   report: Report | null;
+  deputy: Deputy | null;
 }
 
 export interface Report {

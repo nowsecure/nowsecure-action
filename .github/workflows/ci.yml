@@ -12,12 +12,9 @@ on:
   push:
     branches:
       - "*"
-  pull_request:
-    branches:
-      - main
 
 jobs:
-  lint:
+  check:
     runs-on: ubuntu-latest
     env:
       CI: true
@@ -28,7 +25,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v1
         with:
-          node-version: "14.x"
+          node-version: "16.x"
 
       - name: Get cache path
         id: yarn-cache-dir-path
@@ -46,3 +43,5 @@ jobs:
       - run: yarn install --frozen-lockfile --silent
 
       - run: yarn lint
+
+      - run: yarn test

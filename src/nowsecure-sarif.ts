@@ -14,10 +14,11 @@ import type {
 } from "sarif";
 import * as core from "@actions/core";
 import crypto from "crypto";
-import type { Finding, PullReportResponse } from "./nowsecure-types";
+import type { Finding, PullReportResponse } from "./types/platform";
 import { ripGrep as rg, RipGrepError } from "ripgrep-js";
 import { getConfig } from "./utils/config-check";
 
+const DEFAULT_LAB_URL = "https://lab.nowsecure.com";
 const SARIF_SCHEMA_URL =
   "https://raw.githubusercontent.com/schemastore/schemastore/master/src/schemas/json/sarif-2.1.0-rtm.5.json";
 
@@ -74,7 +75,7 @@ function filterFindings(finding: Finding) {
  */
 export async function convertToSarif(
   data: PullReportResponse,
-  labUrl: string
+  labUrl: string = DEFAULT_LAB_URL
 ): Promise<Log> {
   const assessment = data.data.auto.assessments[0];
   const { taskId, applicationRef } = assessment;

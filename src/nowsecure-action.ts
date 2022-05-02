@@ -9,6 +9,13 @@ import fs, { promises } from "fs";
 import { convertToSarif } from "./nowsecure-sarif";
 import { NowSecure } from "./nowsecure-client";
 import { promisify } from "util";
+import {
+  convertToSnapshot,
+  submitSnapshotData,
+  ActionContext,
+} from "./nowsecure-snapshot";
+import type { PullReportResponse } from "./types/platform";
+import * as github from "@actions/github";
 
 const { writeFile } = promises;
 const sleep = promisify(setTimeout);
@@ -19,13 +26,28 @@ async function run() {
     const labApiUrl = core.getInput("lab_api_url");
     const labUrl = core.getInput("lab_url");
     const platformToken = core.getInput("token");
-    const ns = new NowSecure(apiUrl, labApiUrl, platformToken);
+
+    const enableSarif = core.getBooleanInput("enable_sarif");
+    const enableDependencies = core.getBooleanInput("enable_dependencies");
+    const githubToken = core.getInput("github_token");
+    const githubCorrelator = core.getInput("github_correlator");
+    const ns = new NowSecure(platformToken, apiUrl, labApiUrl);
 
     let reportId = core.getInput("report_id");
     if (reportId) {
       const report = await ns.pullReport(reportId);
-      const log = await convertToSarif(report, labUrl);
-      await writeFile("NowSecure.sarif", JSON.stringify(log));
+      if (enableDependencies) {
+        await outputToDependencies(
+          report,
+          github.context,
+          githubCorrelator,
+          githubToken
+        );
+      }
+
+      if (enableSarif) {
+        await outputToSarif(report, labUrl);
+      }
       return;
     }
 
@@ -66,16 +88,52 @@ async function run() {
       await sleep(pollInterval);
     }
 
-    console.log("Found NowSecure report, converting to SARIF...");
+    if (enableDependencies) {
+      await outputToDependencies(
+        report,
+        github.context,
+        githubCorrelator,
+        githubToken
+      );
+    }
 
-    const log = await convertToSarif(report, labUrl);
-    await writeFile("NowSecure.sarif", JSON.stringify(log));
+    if (enableSarif) {
+      await outputToSarif(report, labUrl);
+    }
 
     console.log("Done.");
   } catch (e) {
     console.error(e);
     core.setFailed((e as Error).message);
   }
+}
+
+export async function outputToDependencies(
+  report: PullReportResponse,
+  context: ActionContext,
+  githubCorrelator: string,
+  githubToken: string
+) {
+  const deputy = report?.data?.auto?.assessments[0]?.deputy;
+  if (deputy) {
+    console.log("Converting NowSecure report to Snapshot format...");
+    const snapshotData = convertToSnapshot(deputy, githubCorrelator, context);
+    console.log("Uploading Snapshot data to GitHub...");
+    return submitSnapshotData(snapshotData, context, githubToken);
+  } else {
+    console.warn(
+      "NowSecure did not find dependencies information for this report"
+    );
+  }
+}
+
+export async function outputToSarif(
+  report: PullReportResponse,
+  labUrl: string
+) {
+  console.log("Converting NowSecure report to SARIF...");
+  const log = await convertToSarif(report, labUrl);
+  await writeFile("NowSecure.sarif", JSON.stringify(log));
 }
 
 run();
