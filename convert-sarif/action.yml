@@ -1,5 +1,5 @@
-name: "NowSecure"
-description: "The NowSecure Action delivers fast, accurate, automated security analysis of iOS and Android apps coded in any language"
+name: "NowSecure: Convert SARIF"
+description: "Convert NowSecure assessment to SARIF to be uploaded to GHAS"
 author: "NowSecure Inc."
 inputs:
   token:
@@ -21,16 +21,6 @@ inputs:
     required: false
     description: "Path containing .nsconfig.yml"
     default: "."
-  app_file:
-    required: true
-    description: "Application binary to scan on NowSecure. Must be an Android or iOS application."
-  group_id:
-    required: true
-    description: "Group ID for the application in Platform."
-  headstart_ms:
-    required: false
-    description: "Head start in milliseconds to give Platform before an application is polled for details. Default is 5 minutes."
-    default: "300000"
   poll_interval_ms:
     required: false
     description: "Interval to poll Platform for application details. Default is once a minute."
@@ -43,16 +33,15 @@ inputs:
     required: false
     description: "Enable posting of dependencies results to GitHub."
     default: false
-  github_token:
+  group_id:
+    required: true
+    description: "Group ID for the application in Platform."
+  report_id:
     required: false
-    default: ${{ github.token }}
-  github_correlator:
-    required: false
-    description: "Used for the correlator field in the SBOM format. Distinguishes independent Workflows."
-    default: ${{ format('{0}_{1}', github.workflow, github.job) }}
+    description: "The report ID."
 runs:
   using: "node16"
-  main: "dist/index.js"
+  main: "../dist/nowsecure-convert-sarif/index.js"
 branding:
   icon: alert-triangle
   color: red

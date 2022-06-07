@@ -8,7 +8,7 @@
     "build": "genversion -d --es6 --semi src/nowsecure-version.ts && tsc",
     "lint": "eslint src/**/*.ts && prettier --check **/*.ts",
     "format": "prettier --write .",
-    "prepare-release": "yarn build && ncc build -s src/nowsecure-action.ts",
+    "prepare-release": "yarn build && ncc build -o dist/nowsecure-upload-app -s src/nowsecure-upload-app.ts && ncc build -o dist/nowsecure-convert-sarif -s src/nowsecure-convert-sarif.ts",
     "test": "jest"
   },
   "engines": {
