@@ -6,11 +6,11 @@ name: "NowSecure"
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
   workflow_dispatch:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   # EXAMPLE: Build and upload an Android application to GH artifacts.
@@ -43,6 +43,8 @@ jobs:
   # Scan the Android application with NowSecure.
   scan:
     runs-on: ubuntu-latest
+    outputs:
+      report_id: ${{ steps.upload.outputs.report_id }}
     needs: build
     steps:
       - name: Checkout repository
@@ -57,16 +59,42 @@ jobs:
         with:
           name: app
 
-      - name: NowSecure
-        uses: nowsecure/nowsecure-action@v1
-        timeout-minutes: 60
+      - id: upload
+        name: NowSecure upload app
+        uses: nowsecure/nowsecure-action/upload-app@v1
         with:
           token: ${{ secrets.NS_TOKEN }}
           app_file: app-insecure-debug.apk
-          # TODO: Replace the Group ID
+          # TODO: Replace the Group ID.
+          group_id: "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
+
+  # Pulls the NowSecure report, converts it to SARIF and uploads it.
+  process:
+    if: ${{ needs.scan.outputs.report_id }}
+    runs-on: ubuntu-latest
+    environment:
+      name: nowsecure-env
+    needs: scan
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: NowSecure download report
+        uses: nowsecure/nowsecure-action/convert-sarif@v1
+        timeout-minutes: 60
+        with:
+          report_id: ${{ needs.scan.outputs.report_id }}
+          token: ${{ secrets.NS_TOKEN }}
+          # TODO: Replace the Group ID.
           group_id: "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
 
       - name: Upload SARIF file
         uses: github/codeql-action/upload-sarif@v1
         with:
           sarif_file: NowSecure.sarif
+
+      - name: Upload SARIF to artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: NowSecure.sarif
+          path: ./NowSecure.sarif

@@ -1,0 +1,27 @@
+name: "NowSecure: Upload app"
+description: "Upload an app to NowSecure"
+author: "NowSecure Inc."
+inputs:
+  token:
+    required: true
+    description: "NowSecure Platform token."
+  api_url:
+    required: false
+    description: "NowSecure GraphQL API endpoint."
+    default: "https://api.nowsecure.com"
+  lab_api_url:
+    required: false
+    description: "NowSecure Lab API endpoint."
+    default: "https://lab-api.nowsecure.com"
+  app_file:
+    required: true
+    description: "Application binary to scan on NowSecure. Must be an Android or iOS application."
+  group_id:
+    required: true
+    description: "Group ID for the application in Platform."
+runs:
+  using: "node16"
+  main: "../dist/nowsecure-upload-app/index.js"
+branding:
+  icon: alert-triangle
+  color: red
