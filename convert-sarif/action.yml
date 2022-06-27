@@ -39,6 +39,13 @@ inputs:
   report_id:
     required: false
     description: "The report ID."
+  github_token:
+    required: false
+    default: ${{ github.token }}
+  github_correlator:
+    required: false
+    description: "Used for the correlator field in the SBOM format. Distinguishes independent Workflows."
+    default: ${{ format('{0}_{1}', github.workflow, github.job) }}
 runs:
   using: "node16"
   main: "../dist/nowsecure-convert-sarif/index.js"
