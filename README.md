@@ -9,26 +9,26 @@ The `nowsecure-action` delivers fast, accurate, automated security analysis of i
 - Run scans for each commit, or periodically,
 - And more;
 
-This action requires a NowSecure Platform license (see: [User Guide](#user-guide)).
-
-## User Guide
-
-If you _are not_ an existing NowSecure customer and wish to enable NowSecure for your [GHAS](https://docs.github.com/en/get-started/learning-about-github/about-github-advanced-security)-enabled repository, please [contact us](https://info.nowsecure.com/github-request).
-
-If you _are_ an existing NowSecure customer and have GHAS enabled for your repository, proceed with the instructions below.
-
 ### Prerequisites
 
-- NowSecure Platform token in GitHub secrets,
-  1. Go to "Profile & Preferences" to create a token for GitHub,
-  2. In the repository settings, click "Secrets" then "New repository secret". Name the secret `NS_TOKEN`;
-- Group ID;
+- To use this action an active NowSecure Platform account is required. If you ***are not*** an existing NowSecure Platform customer, please [contact us](https://info.nowsecure.com/github-request).
+- An active GitHub account (cloud or on-prem) with an active Advanced Security feature
 
 ### GitHub Marketplace Setup (recommended)
 
 Click the "Security" tab in your repository (GHAS must be enabled) then "Set up code scanning" then select the NowSecure action from the marketplace and follow the listed instructions.
 
-### Manual Setup
+### Setting up this Action
+
+- First, generate your NowSecure platform token. 
+  - To generate a token, in the UI, go to the "Profile & Preferences"  page and click “Create Token”
+- Then, In the repository settings, set up a new  NS_TOKEN token by clicking "Secrets" and then "New repository secret"
+- Next, copy the group ID for the group you would like to pull from
+  - To find your group ID, in the UI, go to your app’s “Package Details” page and copy the Group ID by hovering over the group name
+- Lastly, enable scanning alerts in GitHub. 
+  - Click the "Security" tab in your repository (GHAS must be enabled) then "Set up code scanning" then select the NowSecure action from the marketplace and follow the listed instructions.
+
+### Required Configuration
 
 For an _existing_ workflow,
 
@@ -55,7 +55,7 @@ After the application build step run the NowSecure action and upload the SARIF t
 
 ### Custom Configuration (Optional)
 
-An `.nsconfig.yml` file in the root of the repo allows you to configure a minimum-severity filter (the default is medium which includes critical, high, and medium findings), a list of [checkIds](src/utils/config-types.ts) to include, as well as a list of [checkIds](src/utils/config-types.ts) to exclude from the code scanning alerts.
+An `.nsconfig.yml` file in the root of the repo allows you to configure a minimum-severity filter (the default is medium which includes critical, high, and medium findings), a list of [checkIds](src/utils/config-types.ts) to include, as well as a list of [checkIds](https://github.com/nowsecure/nowsecure-action/blob/main/workflows/nowsecure.yml) to exclude from the code scanning alerts.
 
 ```yml
 minimum-severity: high # Can be one of [critical, high, medium, low, info]
@@ -68,7 +68,7 @@ exclude-checks:
 
 For a _new_ workflow,
 
-Add a new file called `nowsecure.yml` in your `.github/workflows` folder and review the [example](workflows/nowsecure.yml).
+Add a new file called `nowsecure.yml` in your `.github/workflows` folder and review the [example](https://github.com/nowsecure/nowsecure-action/blob/main/workflows/nowsecure.yml).
 
 ## License
 
