@@ -38,11 +38,6 @@ async function run() {
     for (;;) {
       console.log("Checking for NowSecure report... ", reportId);
       report = await ns.pullReport(reportId);
-
-      if (report.data.my.user.organization.usage.baseline.reached) {
-        throw new Error("Assessment limit reached");
-      }
-
       // NOTE: No optional chaining on Node.js 12 in GitHub Actions.
       try {
         if (report.data.auto.assessments[0].report) {

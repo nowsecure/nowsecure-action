@@ -18,8 +18,9 @@ async function run() {
     const ns = new NowSecure(platformToken, apiUrl, labApiUrl);
     const groupId = core.getInput("group_id");
     const appFile = core.getInput("app_file");
+    const licenseWorkaround = core.getBooleanInput("license_workaround");
 
-    const licenseValid = await ns.isLicenseValid();
+    const licenseValid = await ns.isLicenseValid(licenseWorkaround);
     if (!licenseValid) {
       throw new Error("Assessment limit reached");
     }

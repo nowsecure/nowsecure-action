@@ -9650,8 +9650,10 @@ const LICENSE_GQL = `my {
   user {
     organization {
       usage {
-        baseline {
+        assessment {
+          limit
           reached
+          total
         }
       }
     }
@@ -9759,7 +9761,7 @@ class NowSecure {
      * Checks if the assessment limit has been reached. Throws an exception if
      * an error occurs.
      */
-    isLicenseValid() {
+    isLicenseValid(licenseWorkaround) {
         return __awaiter(this, void 0, void 0, function* () {
             const r = yield __classPrivateFieldGet(this, _NowSecure_client, "f").postJson(`${__classPrivateFieldGet(this, _NowSecure_apiUrl, "f")}/graphql`, {
                 operationName: null,
@@ -9769,7 +9771,16 @@ class NowSecure {
             if (r.statusCode !== 200) {
                 throw new Error(`Report request failed with status ${r.statusCode}`);
             }
-            return !r.result.data.my.user.organization.usage.baseline.reached;
+            const { total, limit, reached } = r.result.data.my.user.organization.usage.assessment;
+            let limitReached = false;
+            if (licenseWorkaround) {
+                // FIXME: Workaround platform license counting issue.
+                limitReached = total + 1 >= limit;
+            }
+            else {
+                limitReached = reached;
+            }
+            return !limitReached;
         });
     }
 }
@@ -9848,9 +9859,6 @@ function run() {
             for (;;) {
                 console.log("Checking for NowSecure report... ", reportId);
                 report = yield ns.pullReport(reportId);
-                if (report.data.my.user.organization.usage.baseline.reached) {
-                    throw new Error("Assessment limit reached");
-                }
                 // NOTE: No optional chaining on Node.js 12 in GitHub Actions.
                 try {
                     if (report.data.auto.assessments[0].report) {

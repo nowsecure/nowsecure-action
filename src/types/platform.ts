@@ -54,6 +54,11 @@ export interface PullReportResponse {
       user: {
         organization: {
           usage: {
+            assessment: {
+              limit: number;
+              total: number;
+              reached: boolean;
+            };
             baseline: {
               reached: boolean;
             };
