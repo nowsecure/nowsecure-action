@@ -9642,11 +9642,28 @@ exports.USER_AGENT = `NowSecure GitHub Action/${nowsecure_version_1.version}`;
 exports.DEFAULT_API_URL = "https://api.nowsecure.com";
 exports.DEFAULT_LAB_API_URL = "https://lab-api.nowsecure.com";
 /**
+ * GraphQL request to check if baseline limit has been reached.
+ *
+ * NOTE: Must be wrapped in a `query` tag for bare requests!
+ */
+const LICENSE_GQL = `my {
+  user {
+    organization {
+      usage {
+        baseline {
+          reached
+        }
+      }
+    }
+  }
+}`;
+/**
  * GraphQL request for Platform.
  *
  * NOTE: Must be kept in sync with `PullReportResponse`.
  */
 const platformGql = (reportId) => `query {
+  ${LICENSE_GQL}
   auto {
     assessments(scope:"*" refs:["${reportId.replace(/[^0-9a-z-]/gi, "")}"]) {
       deputy: _raw(path: "yaap.complete.results[0].deputy.deputy.data[0].results")
@@ -9738,6 +9755,23 @@ class NowSecure {
             return JSON.parse(body);
         });
     }
+    /**
+     * Checks if the assessment limit has been reached. Throws an exception if
+     * an error occurs.
+     */
+    isLicenseValid() {
+        return __awaiter(this, void 0, void 0, function* () {
+            const r = yield __classPrivateFieldGet(this, _NowSecure_client, "f").postJson(`${__classPrivateFieldGet(this, _NowSecure_apiUrl, "f")}/graphql`, {
+                operationName: null,
+                variables: {},
+                query: `query { ${LICENSE_GQL} }`,
+            });
+            if (r.statusCode !== 200) {
+                throw new Error(`Report request failed with status ${r.statusCode}`);
+            }
+            return !r.result.data.my.user.organization.usage.baseline.reached;
+        });
+    }
 }
 exports.NowSecure = NowSecure;
 _NowSecure_client = new WeakMap(), _NowSecure_apiUrl = new WeakMap(), _NowSecure_labApiUrl = new WeakMap();
@@ -9814,6 +9848,9 @@ function run() {
             for (;;) {
                 console.log("Checking for NowSecure report... ", reportId);
                 report = yield ns.pullReport(reportId);
+                if (report.data.my.user.organization.usage.baseline.reached) {
+                    throw new Error("Assessment limit reached");
+                }
                 // NOTE: No optional chaining on Node.js 12 in GitHub Actions.
                 try {
                     if (report.data.auto.assessments[0].report) {
