@@ -1821,6 +1821,7 @@ function run() {
                 throw new Error("Assessment limit reached");
             }
             const details = yield ns.submitBin(fs_1.default.createReadStream(appFile), groupId);
+            console.log(JSON.stringify(details));
             const reportId = details.ref;
             console.log(`NowSecure assessment started. Report ID: ${reportId}`);
             core.setOutput("report_id", reportId);

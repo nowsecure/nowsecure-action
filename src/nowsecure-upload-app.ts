@@ -26,6 +26,7 @@ async function run() {
     }
 
     const details = await ns.submitBin(fs.createReadStream(appFile), groupId);
+    console.log(JSON.stringify(details));
     const reportId = details.ref;
     console.log(`NowSecure assessment started. Report ID: ${reportId}`);
     core.setOutput("report_id", reportId);
