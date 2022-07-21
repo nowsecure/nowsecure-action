@@ -19,11 +19,6 @@ inputs:
   group_id:
     required: true
     description: "Group ID for the application in Platform."
-  license_workaround:
-    required: true
-    description: "Workaround for improved license limit reached UX."
-    default: true
-
 runs:
   using: "node16"
   main: "../dist/nowsecure-upload-app/index.js"
