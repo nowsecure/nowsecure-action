@@ -9642,11 +9642,30 @@ exports.USER_AGENT = `NowSecure GitHub Action/${nowsecure_version_1.version}`;
 exports.DEFAULT_API_URL = "https://api.nowsecure.com";
 exports.DEFAULT_LAB_API_URL = "https://lab-api.nowsecure.com";
 /**
+ * GraphQL request to check if baseline limit has been reached.
+ *
+ * NOTE: Must be wrapped in a `query` tag for bare requests!
+ */
+const LICENSE_GQL = `my {
+  user {
+    organization {
+      usage {
+        assessment {
+          limit
+          reached
+          total
+        }
+      }
+    }
+  }
+}`;
+/**
  * GraphQL request for Platform.
  *
  * NOTE: Must be kept in sync with `PullReportResponse`.
  */
 const platformGql = (reportId) => `query {
+  ${LICENSE_GQL}
   auto {
     assessments(scope:"*" refs:["${reportId.replace(/[^0-9a-z-]/gi, "")}"]) {
       deputy: _raw(path: "yaap.complete.results[0].deputy.deputy.data[0].results")
@@ -9736,6 +9755,29 @@ class NowSecure {
             }
             const body = yield r.readBody();
             return JSON.parse(body);
+        });
+    }
+    /**
+     * Checks if the assessment limit has been reached. Throws an exception if
+     * an error occurs.
+     */
+    isLicenseValid(licenseWorkaround) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const r = yield __classPrivateFieldGet(this, _NowSecure_client, "f").postJson(`${__classPrivateFieldGet(this, _NowSecure_apiUrl, "f")}/graphql`, {
+                operationName: null,
+                variables: {},
+                query: `query { ${LICENSE_GQL} }`,
+            });
+            if (r.statusCode !== 200) {
+                throw new Error(`Report request failed with status ${r.statusCode}`);
+            }
+            const { total, limit, reached } = r.result.data.my.user.organization.usage.assessment;
+            let limitReached = reached;
+            if (licenseWorkaround) {
+                // FIXME: Workaround platform license counting issue.
+                limitReached = limit !== -1 && total + 1 >= limit;
+            }
+            return !limitReached;
         });
     }
 }
