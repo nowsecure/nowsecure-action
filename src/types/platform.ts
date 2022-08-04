@@ -50,6 +50,22 @@ export interface PullReportResponse {
     auto: {
       assessments: Assessment[];
     };
+    my: {
+      user: {
+        organization: {
+          usage: {
+            assessment: {
+              limit: number;
+              total: number;
+              reached: boolean;
+            };
+            baseline: {
+              reached: boolean;
+            };
+          };
+        };
+      };
+    };
   };
 }
 
