@@ -21,6 +21,15 @@ Object {
         },
       },
     },
+    "Payload/Example.app/libexample.dylib": Object {
+      "name": "Payload/Example.app/libexample.dylib",
+      "resolved": Object {
+        "libexample": Object {
+          "package_url": "pkg:generic/libexample@1.0.0",
+          "relationship": "direct",
+        },
+      },
+    },
     "Podfile.lock": Object {
       "name": "Podfile.lock",
       "resolved": Object {
