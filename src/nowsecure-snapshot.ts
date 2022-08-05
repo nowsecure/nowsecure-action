@@ -63,11 +63,26 @@ export function convertToSnapshot(
       };
     }
 
-    const purl = encodePurl(
-      component.ecosystem.toLowerCase(),
-      component.name,
-      component.version
-    );
+    // We need to translate our ecosystem into a proper PURL type.
+    // See https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst for supported PURL
+    // types.
+    let ecosystem = component.ecosystem.toLowerCase();
+    switch (component.ecosystem) {
+      case "Commercial":
+      case "Native":
+        // Fallback to "generic" which is reserved for this purpose.
+        ecosystem = "generic";
+        break;
+      case "CocoaPods":
+      case "Maven":
+      case "npm":
+      case "NuGet":
+        break;
+      // We purposefully omit default because the typings include a union here so if new types are
+      // added the TypeScript compiler will emit an error.
+    }
+
+    const purl = encodePurl(ecosystem, component.name, component.version);
 
     manifest.resolved[component.name] = {
       package_url: purl.toString(),

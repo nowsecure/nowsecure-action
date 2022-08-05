@@ -55,6 +55,23 @@
       "coordinates": null,
       "internal": false,
       "source": "/Payload/Example.app/ExampleFramework/Info.plist"
+    },
+    {
+      "ecosystem": "Native",
+      "name": "libexample",
+      "homepage": null,
+      "description": null,
+      "mainVersion": "1.0.0",
+      "shortVersion": "1.0.0",
+      "version": "1.0.0",
+      "latest": null,
+      "license": null,
+      "vulnerabilities": [],
+      "vulnerabilitiesFound": 0,
+      "referenceUrl": null,
+      "coordinates": null,
+      "internal": false,
+      "source": "/Payload/Example.app/libexample.dylib"
     }
   ],
   "success": true
