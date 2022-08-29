@@ -9664,7 +9664,7 @@ const LICENSE_GQL = `my {
  *
  * NOTE: Must be kept in sync with `PullReportResponse`.
  */
-const platformGql = (reportId) => `query {
+const platformGql = (reportId) => `{
   ${LICENSE_GQL}
   auto {
     assessments(scope:"*" refs:["${reportId.replace(/[^0-9a-z-]/gi, "")}"]) {
@@ -9732,11 +9732,7 @@ class NowSecure {
      */
     pullReport(reportId) {
         return __awaiter(this, void 0, void 0, function* () {
-            const r = yield __classPrivateFieldGet(this, _NowSecure_client, "f").postJson(`${__classPrivateFieldGet(this, _NowSecure_apiUrl, "f")}/graphql`, {
-                operationName: null,
-                variables: {},
-                query: platformGql(reportId),
-            });
+            const r = yield __classPrivateFieldGet(this, _NowSecure_client, "f").getJson(`${__classPrivateFieldGet(this, _NowSecure_apiUrl, "f")}/graphql?query=${platformGql(reportId)}`);
             if (r.statusCode !== 200) {
                 throw new Error(`Report request failed with status ${r.statusCode}`);
             }
@@ -9763,11 +9759,7 @@ class NowSecure {
      */
     isLicenseValid(licenseWorkaround) {
         return __awaiter(this, void 0, void 0, function* () {
-            const r = yield __classPrivateFieldGet(this, _NowSecure_client, "f").postJson(`${__classPrivateFieldGet(this, _NowSecure_apiUrl, "f")}/graphql`, {
-                operationName: null,
-                variables: {},
-                query: `query { ${LICENSE_GQL} }`,
-            });
+            const r = yield __classPrivateFieldGet(this, _NowSecure_client, "f").getJson(`${__classPrivateFieldGet(this, _NowSecure_apiUrl, "f")}/graphql?query={${LICENSE_GQL}}`);
             if (r.statusCode !== 200) {
                 throw new Error(`Report request failed with status ${r.statusCode}`);
             }

@@ -39,7 +39,7 @@ const LICENSE_GQL = `my {
  *
  * NOTE: Must be kept in sync with `PullReportResponse`.
  */
-const platformGql = (reportId: string): string => `query {
+const platformGql = (reportId: string): string => `{
   ${LICENSE_GQL}
   auto {
     assessments(scope:"*" refs:["${reportId.replace(/[^0-9a-z-]/gi, "")}"]) {
@@ -113,13 +113,8 @@ export class NowSecure {
    * Pulls a report from NowSecure. Throws an exception if an error occurs.
    */
   async pullReport(reportId: string): Promise<PullReportResponse> {
-    const r = await this.#client.postJson<PullReportResponse>(
-      `${this.#apiUrl}/graphql`,
-      {
-        operationName: null,
-        variables: {},
-        query: platformGql(reportId),
-      }
+    const r = await this.#client.getJson<PullReportResponse>(
+      `${this.#apiUrl}/graphql?query=${platformGql(reportId)}`
     );
 
     if (r.statusCode !== 200) {
@@ -159,13 +154,8 @@ export class NowSecure {
    * an error occurs.
    */
   async isLicenseValid(licenseWorkaround: boolean): Promise<boolean> {
-    const r = await this.#client.postJson<PullReportResponse>(
-      `${this.#apiUrl}/graphql`,
-      {
-        operationName: null,
-        variables: {},
-        query: `query { ${LICENSE_GQL} }`,
-      }
+    const r = await this.#client.getJson<PullReportResponse>(
+      `${this.#apiUrl}/graphql?query={${LICENSE_GQL}}`
     );
 
     if (r.statusCode !== 200) {
