@@ -53,6 +53,10 @@ After the application build step run the NowSecure action and upload the SARIF t
     path: NowSecure.sarif
 ```
 
+For a _new_ workflow,
+
+Add a new file called `nowsecure.yml` in your `.github/workflows` folder and review the [example](https://github.com/nowsecure/nowsecure-action/blob/main/workflows/nowsecure.yml).
+
 ### Custom Configuration (Optional)
 
 An `.nsconfig.yml` file in the root of the repo allows you to configure a minimum-severity filter (the default is medium which includes critical, high, and medium findings), a list of [checkIds](src/utils/config-types.ts) to include, as well as a list of [checkIds](https://github.com/nowsecure/nowsecure-action/blob/main/workflows/nowsecure.yml) to exclude from the code scanning alerts.
@@ -66,9 +70,9 @@ exclude-checks:
   - android_janus_warn
 ```
 
-For a _new_ workflow,
+### Documentation
 
-Add a new file called `nowsecure.yml` in your `.github/workflows` folder and review the [example](https://github.com/nowsecure/nowsecure-action/blob/main/workflows/nowsecure.yml).
+Please see the [documentation folder](https://github.com/nowsecure/nowsecure-action/tree/main/doc) for more user guides.
 
 ## License
 
