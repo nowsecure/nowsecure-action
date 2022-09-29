@@ -14,7 +14,7 @@ import type {
 } from "sarif";
 import crypto from "crypto";
 import type { PullReportResponse } from "./nowsecure-types";
-import { ripGrep as rg, RipGrepError } from "ripgrep-js";
+  import { ripGrep as rg, RipGrepError } from "ripgrep-js";
 
 const SARIF_SCHEMA_URL =
   "https://raw.githubusercontent.com/schemastore/schemastore/master/src/schemas/json/sarif-2.1.0-rtm.5.json";
