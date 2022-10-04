@@ -36,7 +36,8 @@
       "type": "object",
       "properties": {
         "filter": { "$ref": "#/$defs/filterorstring" },
-        "key": { "$ref": "#/$defs/keyparams" }
+        "key": { "$ref": "#/$defs/keyparams" },
+        "labels": { "$ref": "#/$defs/labels" }
       },
       "unevaluatedProperties": false
     },
@@ -56,6 +57,31 @@
         "v1-key": { "type": "string" }
       },
       "additionalProperties": false
+    },
+    "labellistorstring": {
+      "anyOf": [
+        { "type": "array", "items": { "type": "string" } },
+        { "type": "string" }
+      ]
+    },
+    "labelmapping": {
+      "type": "object",
+      "properties": {
+        "always": { "$ref": "#/$defs/labellistorstring" },
+        "info": { "$ref": "#/$defs/labellistorstring" },
+        "warning": { "$ref": "#/$defs/labellistorstring" },
+        "low": { "$ref": "#/$defs/labellistorstring" },
+        "medium": { "$ref": "#/$defs/labellistorstring" },
+        "high": { "$ref": "#/$defs/labellistorstring" },
+        "critical": { "$ref": "#/$defs/labellistorstring" }
+      },
+      "unevaluatedProperties": false
+    },
+    "labels": {
+      "anyOf": [
+        { "$ref": "#/$defs/labellistorstring" },
+        { "$ref": "#/$defs/labelmapping" }
+      ]
     }
   }
 }

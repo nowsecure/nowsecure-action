@@ -1,0 +1,34 @@
+# Used by config.test.ts and labels.test.ts
+
+configs:
+  empty: {}
+  invalid_type:
+    labels: 3
+  invalid_list:
+    labels:
+      - 3
+  valid_string:
+    labels: one
+  valid_list:
+    labels:
+      - one
+      - two
+  invalid_keys:
+    labels:
+      not_a_severity:
+        - one
+  invalid_sev_list:
+    labels:
+      always: 3
+  all_keys:
+    labels:
+      always: always
+      info:
+        - info
+      warning: warning
+      low:
+        - low
+      medium: medium
+      high:
+        - high
+      critical: critical

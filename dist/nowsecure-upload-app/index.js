@@ -22680,8 +22680,17 @@ const FILTER_KEYS = [
     "include-warnings",
 ];
 const KEY_KEYS = ["package", "platform", "v1-key"];
-const ISSUE_CONFIG_KEYS = ["filter", "key"];
+const ISSUE_CONFIG_KEYS = ["filter", "key", "labels"];
 const SARIF_CONFIG_KEYS = ["filter", "key"];
+const LABEL_KEYS = [
+    "always",
+    "info",
+    "warning",
+    "low",
+    "medium",
+    "high",
+    "critical",
+];
 const ALL_CONFIG_KEYS = Array.from(new Set(ISSUE_CONFIG_KEYS.concat(SARIF_CONFIG_KEYS)));
 /** Keys valid at the outer level */
 const OUTER_KEYS = FILTER_KEYS.concat(["filters", "configs", "key"]);
@@ -22865,6 +22874,7 @@ class NsConfig {
         const config = {
             filter: this.mergeFilters(filter_1.DEFAULT_ISSUES_FILTER, rawConfig.filter),
             key: rawConfig.key || Object.assign({}, this.keyParams),
+            labels: this.parseLabels(rawConfig.labels),
         };
         return config;
     }
@@ -22879,6 +22889,37 @@ class NsConfig {
             key: rawConfig.key || Object.assign({}, this.keyParams),
         };
         return config;
+    }
+    parseLabels(labels) {
+        const checkList = (test, listName) => {
+            if (typeof test === "string") {
+                return [test];
+            }
+            if (!(0, filter_1.isStringArray)(test)) {
+                throw new TypeError(`${listName} must be a string or a list of strings`);
+            }
+            return test;
+        };
+        if (labels === undefined) {
+            return { always: ["NowSecure"] };
+        }
+        if (typeof labels === "string") {
+            return { always: [labels] };
+        }
+        if ((0, lodash_1.isArray)(labels)) {
+            if (!(0, filter_1.isStringArray)(labels)) {
+                throw new TypeError(`labels must be a string, a list of strings or a Labels object`);
+            }
+            return { always: labels };
+        }
+        checkObject(labels, LABEL_KEYS, "labels");
+        const ret = {};
+        for (const key of LABEL_KEYS) {
+            if (key in labels) {
+                ret[key] = checkList(labels[key], key);
+            }
+        }
+        return ret;
     }
 }
 exports.NsConfig = NsConfig;
@@ -22947,7 +22988,7 @@ exports.KeyError = KeyError;
  * SPDX-License-Identifier: MIT
  */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.DEFAULT_ISSUES_FILTER = exports.DEFAULT_SARIF_FILTER = exports.parseFilter = exports.findingMatchesFilter = exports.InvalidFilterError = void 0;
+exports.DEFAULT_ISSUES_FILTER = exports.DEFAULT_SARIF_FILTER = exports.parseFilter = exports.isStringArray = exports.findingMatchesFilter = exports.InvalidFilterError = void 0;
 const config_types_1 = __nccwpck_require__(2459);
 const errors_1 = __nccwpck_require__(2579);
 /** Fields are all valid but the overall filter doesn't make sense */
@@ -22994,6 +23035,7 @@ function severityToSarif(input) {
 function isStringArray(test) {
     return (Array.isArray(test) && test.findIndex((x) => typeof x !== "string") == -1);
 }
+exports.isStringArray = isStringArray;
 /**
  * Validate user inputed checkIds
  */

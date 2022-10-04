@@ -19,6 +19,7 @@ import {
   IssueActionType,
   nsIssueTag,
   processFindingIssues,
+  findingLabels,
 } from "./nowsecure-issues";
 import * as github from "@actions/github";
 import GitHub from "./types/github";
@@ -119,6 +120,7 @@ export async function run() {
         await repo.createIssue({
           title: finding.title,
           body: buildBody(assessment, finding, jobConfig.key),
+          labels: findingLabels(finding, jobConfig.labels),
         });
         break;
 

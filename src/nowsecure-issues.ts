@@ -4,9 +4,14 @@
  * SPDX-License-Identifier: MIT
  */
 import { Assessment, Finding } from "./types/platform";
-import { Filter, findingKey, findingMatchesFilter, KeyParams } from "./utils";
+import {
+  Filter,
+  findingKey,
+  findingMatchesFilter,
+  KeyParams,
+  Labels,
+} from "./utils";
 import GitHub from "./types/github";
-import { find } from "lodash";
 
 export enum IssueActionType {
   CREATE,
@@ -124,4 +129,20 @@ function findExistingIssue(
     return open;
   }
   return candidates[0];
+}
+
+/**
+ * Return the list of labels to apply to a new issue
+ */
+export function findingLabels(finding: Finding, labelConfig: Labels) {
+  const rawSeverity = finding.severity || "info";
+  const severity =
+    rawSeverity === "info" && finding.check?.issue?.warn
+      ? "warning"
+      : rawSeverity;
+
+  // pick the labels from 'always' and the finding's severity
+  const labels = (labelConfig.always || []).concat(labelConfig[severity] || []);
+  // de-dedup.
+  return [...new Set(labels)];
 }
