@@ -1,6 +1,21 @@
-# An example workflow using the NowSecure action that builds an Android application
-# in the "build" phase and then runs it against NowSecure in the "scan" phase.
-# This action is run each time a commit is pushed to the "main" branch.
+# An example workflow using the NowSecure Issues action.
+# This action is run each time a commit is pushed to the "main" branch,
+# on pull requests or the workflow is manually triggered
+#
+# This workflow builds an Android application saving the output apk as
+# an artifact in the "build" phase.
+#
+# In the "scan" phase the apk is uploaded to NowSecure, generating a
+# report.
+#
+# In the "issues" phase the report is downloaded from NowSecure and
+# issues are generated for findings that match the filter criteria
+# (which can be overridden in .nsconfig.yml)
+#
+# In the CI/CD config:
+# - Set the NS_TOKEN secret to a NowSecure Api token for your NowSecure user
+# - Set the NS_GROUP_ID secret to the id of the group to which the
+#      application should be added.
 
 name: "NowSecure"
 
@@ -11,6 +26,11 @@ on:
     branches: [main]
   workflow_dispatch:
     branches: [main]
+
+env:
+  # Name of the output file from the build stage without a path
+  # defined as a var since it's used more than once.
+  BUILD_OUTPUT_NAME: "app-insecure-debug.apk"
 
 jobs:
   # EXAMPLE: Build and upload an Android application to GH artifacts.
@@ -37,7 +57,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: app
-          path: ./app/build/outputs/apk/insecure/debug/app-insecure-debug.apk
+          path: ./app/build/outputs/apk/insecure/debug/${{ env.BUILD_OUTPUT_NAME }}
           retention-days: 3
 
   # Scan the Android application with NowSecure.
@@ -64,37 +84,24 @@ jobs:
         uses: nowsecure/nowsecure-action/upload-app@v3
         with:
           platform_token: ${{ secrets.NS_TOKEN }}
-          app_file: app-insecure-debug.apk
-          # TODO: Replace the Group ID.
-          group_id: "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
+          group_id: ${{ secrets.NS_GROUP_ID }}
+          app_file: ${{ env.BUILD_OUTPUT_NAME }}
 
-  # Pulls the NowSecure report, converts it to SARIF and uploads it.
-  process:
+  issues:
+    needs: scan
     if: ${{ needs.scan.outputs.report_id }}
     runs-on: ubuntu-latest
-    environment:
-      name: nowsecure-env
-    needs: scan
+    permissions: write-all
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: NowSecure download report
-        uses: nowsecure/nowsecure-action/convert-sarif@v3
+      # create issues. Uses the defaults: create issues in the current
+      # repository and assign them to the repository owner
+      - id: createIssues
+        uses: nowsecure/nowsecure-action/create-issues@v3
         timeout-minutes: 60
         with:
           report_id: ${{ needs.scan.outputs.report_id }}
           platform_token: ${{ secrets.NS_TOKEN }}
-          # TODO: Replace the Group ID.
-          group_id: "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
-
-      - name: Upload SARIF file
-        uses: github/codeql-action/upload-sarif@v1
-        with:
-          sarif_file: NowSecure.sarif
-
-      - name: Upload SARIF to artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: NowSecure.sarif
-          path: ./NowSecure.sarif
+          config: "issues"

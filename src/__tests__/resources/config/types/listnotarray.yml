@@ -1,0 +1,3 @@
+filters:
+  fail:
+    exclude-checks: "Not an array"

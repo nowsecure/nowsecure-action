@@ -10,6 +10,7 @@ import type {
   PullReportResponse,
 } from "./types/platform";
 import { version } from "./nowsecure-version";
+import { sleep } from "./utils";
 
 export const USER_AGENT = `NowSecure GitHub Action/${version}`;
 export const DEFAULT_API_URL = "https://api.nowsecure.com";
@@ -56,6 +57,7 @@ const platformGql = (reportId: string): string => `{
           summary
           affected
           severity
+          uniqueVulnerabilityId
           context {
             fields
             rows
@@ -63,6 +65,7 @@ const platformGql = (reportId: string): string => `{
           check {
             issue {
               title
+              warn
               description
               impactSummary
               stepsToReproduce
@@ -122,6 +125,33 @@ export class NowSecure {
     }
 
     return r.result;
+  }
+
+  /**
+   * Poll Platform to resolve the report ID to a report.
+   * GitHub Actions will handle the timeout for us in the event something goes awry.
+   */
+  async pollForReport(
+    reportId: string,
+    pollInterval: number
+  ): Promise<PullReportResponse | null> {
+    let report = null;
+    for (;;) {
+      console.log("Checking for NowSecure report... ", reportId);
+      report = await this.pullReport(reportId);
+      // NOTE: No optional chaining on Node.js 12 in GitHub Actions.
+      try {
+        if (report.data.auto.assessments[0].report) {
+          break;
+        } else {
+          await sleep(pollInterval);
+        }
+      } catch (e) {
+        console.error(e);
+        // No report data.
+      }
+    }
+    return report;
   }
 
   /**

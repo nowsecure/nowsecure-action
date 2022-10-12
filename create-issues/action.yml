@@ -1,5 +1,5 @@
-name: "NowSecure: Convert SARIF"
-description: "Convert NowSecure assessment to SARIF to be uploaded to GHAS"
+name: "NowSecure: Create Issues"
+description: "Create GitHub issues after NowSecure analysis"
 author: "NowSecure Inc."
 inputs:
   platform_token:
@@ -8,9 +8,6 @@ inputs:
   token:
     required: false
     description: "Deprecated: use platform_token."
-  group_id:
-    required: true
-    description: "Group ID for the application in Platform."
   github_token:
     required: false
     default: ${{ github.token }}
@@ -22,10 +19,6 @@ inputs:
     required: false
     description: "NowSecure Lab API endpoint."
     default: "https://lab-api.nowsecure.com"
-  lab_url:
-    required: false
-    description: "NowSecure Lab URL."
-    default: "https://lab.nowsecure.com"
   config_path:
     required: false
     description: "Path containing .nsconfig.yml"
@@ -35,27 +28,21 @@ inputs:
     description: "Name of the configuration in .nsconfig.yml to use"
     default: ""
   report_id:
-    required: false
+    required: true
     description: "The report ID."
   poll_interval_ms:
     required: false
     description: "Interval to poll Platform for application details. Default is once a minute."
     default: "60000"
-  enable_sarif:
+  repo:
     required: false
-    description: "Enable creation of a SARIF file."
-    default: true
-  enable_dependencies:
+    description: The name of the GitHub repository used to create issues. Defaults to the repo running the action"
+  repo_owner:
     required: false
-    description: "Enable posting of dependencies results to GitHub."
-    default: false
-  github_correlator:
-    required: false
-    description: "Used for the correlator field in the SBOM format. Distinguishes independent Workflows."
-    default: ${{ format('{0}_{1}', github.workflow, github.job) }}
+    description: "The owner of the GitHub repository used to create issues. Defaults to the owner of the repo running the action"
 runs:
   using: "node16"
-  main: "../dist/nowsecure-convert-sarif/index.js"
+  main: "../dist/nowsecure-create-issues/index.js"
 branding:
   icon: alert-triangle
   color: red
