@@ -3,18 +3,10 @@
  *
  * SPDX-License-Identifier: MIT
  */
-import crypto from "crypto";
-
-import { Finding } from "./types/platform";
-import { Filter, findingMatchesFilter } from "./utils";
+import { Assessment, Finding } from "./types/platform";
+import { Filter, findingKey, findingMatchesFilter, KeyParams } from "./utils";
 import GitHub from "./types/github";
-
-/**
- * Take the SHA256 of an input string and output in hex.
- */
-function sha256(input: string): string {
-  return crypto.createHash("sha256").update(input).digest("hex");
-}
+import { find } from "lodash";
 
 export enum IssueActionType {
   CREATE,
@@ -30,8 +22,12 @@ export interface IssueAction {
 export const NO_ISSUE_ID = 0;
 
 /** Generate unique tag for finding, used to re-identify existing issues we created */
-export function nsIssueTag(finding: Finding) {
-  return "nowsecure_unique_id: " + sha256(finding.key);
+export function nsIssueTag(
+  assessment: Assessment,
+  finding: Finding,
+  keyParams: KeyParams
+) {
+  return "nowsecure_unique_id=" + findingKey(assessment, finding, keyParams);
 }
 
 /**
@@ -43,9 +39,11 @@ export function nsIssueTag(finding: Finding) {
  * @returns List of IssueActions for each finding that requires processing
  */
 export function processFindingIssues(
+  assessment: Assessment,
   findings: Finding[],
   existingIssues: GitHub.Issue[],
-  filter: Filter
+  filter: Filter,
+  keyParams: KeyParams
 ): IssueAction[] {
   const actionList: IssueAction[] = [];
 
@@ -61,7 +59,7 @@ export function processFindingIssues(
   for (var finding of findings) {
     if (findingMatchesFilter(finding, filter)) {
       let issueToUpdate = hasExisting
-        ? findExistingIssue(finding, existingIssues)
+        ? findExistingIssue(assessment, finding, existingIssues, keyParams)
         : null;
 
       if (!issueToUpdate) {
@@ -103,10 +101,12 @@ export function processFindingIssues(
  * @returns Matching GitHub issue, or null
  */
 function findExistingIssue(
+  assessment: Assessment,
   finding: Finding,
-  existing: GitHub.Issue[]
+  existing: GitHub.Issue[],
+  keyParams: KeyParams
 ): GitHub.Issue | null {
-  const tag = nsIssueTag(finding);
+  const tag = nsIssueTag(assessment, finding, keyParams);
   const issueMatchesFinding = (issue: GitHub.Issue) =>
     issue.body && issue.body.indexOf(tag) >= 0;
 

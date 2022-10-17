@@ -82,7 +82,7 @@
     "closed_at": null,
     "author_association": "NONE",
     "active_lock_reason": null,
-    "body": "nowsecure_unique_id: 43627f495686f385058458115df15557a3ee0f8fed8d6cfaab56d7707ac2e1bc<h4>Severity</h3>critical<h3>Description:</h3>This is a descriptive explanation of the example check 1.<h3>Impact Summary:</h3>This is the impact of the example check 1.<h3>Steps to reproduce:</h3>N/A<h3>Recommendations:</h3></p>This is an example recommendation for 1.",
+    "body": "nowsecure_unique_id=9b2fc0086485e2dc5209f3515bb53cf7771a366c2eb1503b61377e98653361a6<h4>Severity</h3>critical<h3>Description:</h3>This is a descriptive explanation of the example check 1.<h3>Impact Summary:</h3>This is the impact of the example check 1.<h3>Steps to reproduce:</h3>N/A<h3>Recommendations:</h3></p>This is an example recommendation for 1.",
     "reactions": {
       "url": "https://api.github.com/repos/example-user/example-repo/issues/37/reactions",
       "total_count": 0,
@@ -182,7 +182,7 @@
     "closed_at": null,
     "author_association": "NONE",
     "active_lock_reason": null,
-    "body": "nowsecure_unique_id: 845558fcab5d22746136a288173f27c59c30ceb42ca4f6858162f71a7fa2fa33<h4>Severity</h3>high<h3>Description:</h3>This is a descriptive explanation of the example check 2.<h3>Impact Summary:</h3>This is the impact of the example check 2.<h3>Steps to reproduce:</h3>N/A<h3>Recommendations:</h3></p>This is an example recommendation for 2.",
+    "body": "nowsecure_unique_id=81e9d907b56576735395fb0d07ae962c426c6d31ae8c994bc800c740cb48bc6c<h4>Severity</h3>high<h3>Description:</h3>This is a descriptive explanation of the example check 2.<h3>Impact Summary:</h3>This is the impact of the example check 2.<h3>Steps to reproduce:</h3>N/A<h3>Recommendations:</h3></p>This is an example recommendation for 2.",
     "reactions": {
       "url": "https://api.github.com/repos/example-user/example-repo/issues/36/reactions",
       "total_count": 0,
@@ -282,7 +282,7 @@
     "closed_at": null,
     "author_association": "NONE",
     "active_lock_reason": null,
-    "body": "nowsecure_unique_id: f4e78dc3a92c8585b15d3358a117b7382ade2c01e0f7afb4e5e46cf6d1b32a5f<h4>Severity</h3>medium<h3>Description:</h3>This is a descriptive explanation of the example check 3.<h3>Impact Summary:</h3>This is the impact of the example check 3.<h3>Steps to reproduce:</h3>N/A<h3>Recommendations:</h3></p>This is an example recommendation for 3.",
+    "body": "nowsecure_unique_id=6aef68520dfe708ea11c03d49fb1dc4a3ed6ffbd8a197dac70d59accacf73ffb<h4>Severity</h3>medium<h3>Description:</h3>This is a descriptive explanation of the example check 3.<h3>Impact Summary:</h3>This is the impact of the example check 3.<h3>Steps to reproduce:</h3>N/A<h3>Recommendations:</h3></p>This is an example recommendation for 3.",
     "reactions": {
       "url": "https://api.github.com/repos/example-user/example-repo/issues/35/reactions",
       "total_count": 0,
@@ -382,7 +382,7 @@
     "closed_at": null,
     "author_association": "NONE",
     "active_lock_reason": null,
-    "body": "nowsecure_unique_id: 73ebfc01d5a632f4fe7217545e5775846e1fed3a8b14be516162dd370c07bb50<h4>Severity</h3>low<h3>Description:</h3>This is a descriptive explanation of the example check 4.<h3>Impact Summary:</h3>This is the impact of the example check 4.<h3>Steps to reproduce:</h3>N/A<h3>Recommendations:</h3></p>This is an example recommendation for 4.",
+    "body": "nowsecure_unique_id=4373d800f0448d28538271ceb780a578380804289ad44bb1998707732608e4c1<h4>Severity</h3>low<h3>Description:</h3>This is a descriptive explanation of the example check 4.<h3>Impact Summary:</h3>This is the impact of the example check 4.<h3>Steps to reproduce:</h3>N/A<h3>Recommendations:</h3></p>This is an example recommendation for 4.",
     "reactions": {
       "url": "https://api.github.com/repos/example-user/example-repo/issues/34/reactions",
       "total_count": 0,
@@ -482,7 +482,7 @@
     "closed_at": null,
     "author_association": "NONE",
     "active_lock_reason": null,
-    "body": "nowsecure_unique_id: f6a5e46c6a409a055b1617df39580cbd9cdd9357ce38627865d4084cb7e297d6<h4>Severity</h3>info<h3>Description:</h3>This is a descriptive explanation of the example check 5.<h3>Impact Summary:</h3>This is the impact of the example check 5.<h3>Steps to reproduce:</h3>N/A<h3>Recommendations:</h3></p>This is an example recommendation for 5.",
+    "body": "nowsecure_unique_id=5988a6a623558e624661a4265a8c3b5516911b4b5f49432a716f0db6e4da96df<h4>Severity</h3>info<h3>Description:</h3>This is a descriptive explanation of the example check 5.<h3>Impact Summary:</h3>This is the impact of the example check 5.<h3>Steps to reproduce:</h3>N/A<h3>Recommendations:</h3></p>This is an example recommendation for 5.",
     "reactions": {
       "url": "https://api.github.com/repos/example-user/example-repo/issues/33/reactions",
       "total_count": 0,

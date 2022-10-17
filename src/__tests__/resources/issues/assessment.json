@@ -3,6 +3,7 @@
     "auto": {
       "assessments": [
         {
+          "platformType": "android",
           "packageKey": "com.example.app",
           "taskId": "1",
           "applicationRef": "00000000-0000-0000-0000-000000000001",

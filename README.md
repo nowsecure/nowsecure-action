@@ -127,6 +127,20 @@ For a _new_ workflow,
 
 Add a new file called `nowsecure.yml` in your `.github/workflows` folder and review the [example](https://github.com/nowsecure/nowsecure-action/blob/main/workflows/nowsecure.yml).
 
+### Finding IDs
+
+The actions derive a persistent ID from the finding key, the platform and the package name. This can be controlled by the `key` element in `.nsconfig.yml`,
+declared either at the root or as part of a `config` element.
+
+NB: This is a change from the ID derivation in v2.1.1 and prior. To continue using the old key function, set the v1-key to the platform and package you are assessing.
+
+```yml
+key:
+  platform: false # Don't use the platform when deriving an ID
+  package: false # Don't use the package when deriving an ID
+  v1-key: android com.example.app # use the old key function for com.example.app on android
+```
+
 ## License
 
 This project is released under the [MIT License](https://github.com/nowsecure/nowsecure-action/blob/master/LICENSE).

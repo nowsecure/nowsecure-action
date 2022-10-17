@@ -3,11 +3,8 @@ description: "Upload an app to NowSecure"
 author: "NowSecure Inc."
 inputs:
   platform_token:
-    required: false
+    required: true
     description: "NowSecure Platform token."
-  token:
-    required: false
-    description: "Deprecated: use platform_token."
   api_url:
     required: false
     description: "NowSecure GraphQL API endpoint."

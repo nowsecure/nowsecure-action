@@ -3,11 +3,8 @@ description: "Create GitHub issues after NowSecure analysis"
 author: "NowSecure Inc."
 inputs:
   platform_token:
-    required: false
+    required: true
     description: "NowSecure Platform token."
-  token:
-    required: false
-    description: "Deprecated: use platform_token."
   github_token:
     required: false
     default: ${{ github.token }}

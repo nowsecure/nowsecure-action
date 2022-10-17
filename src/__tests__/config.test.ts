@@ -88,11 +88,23 @@ describe("config file validation", () => {
     const emptyConfig = config.getConfig("empty", "issues");
     const inlineConfig = config.getConfig("inline-filter", "issues");
     const refConfig = config.getConfig("reference-filter", "issues");
+    const keyConfig1 = config.getConfig("key-params-1", "issues");
+    const keyConfig2 = config.getConfig("key-params-2", "issues");
 
     expect(emptyConfig.filter.excludeChecks).toEqual(["check_1"]);
     expect(inlineConfig.filter.excludeChecks).toEqual(["check_5"]);
     expect(refConfig.filter.excludeChecks).toEqual(["check_3"]);
 
     expect(() => config.getConfig("not-present", "issues")).toThrow(ValueError);
+
+    expect(keyConfig1.key.includePlatform).toBe(true);
+    expect(keyConfig1.key.includePackage).toBe(false);
+    expect(keyConfig1.key.v1platform).toEqual("ios");
+    expect(keyConfig1.key.v1package).toEqual("com.example.app");
+
+    expect(keyConfig2.key.includePlatform).toBe(false);
+    expect(keyConfig2.key.includePackage).toBe(true);
+    expect(keyConfig2.key.v1platform).toBeNull();
+    expect(keyConfig2.key.v1package).toBeNull();
   });
 });

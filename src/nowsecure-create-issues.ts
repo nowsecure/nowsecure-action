@@ -6,13 +6,19 @@
 
 import * as core from "@actions/core";
 import { NowSecure } from "./nowsecure-client";
-import { Finding } from "./types/platform";
-import { NsConfig, CustomError } from "./utils";
+import { Assessment, Finding } from "./types/platform";
+import {
+  NsConfig,
+  CustomError,
+  platformConfig,
+  findingKey,
+  KeyParams,
+} from "./utils";
 import { GitHubRepo } from "./utils/github-issues";
 import {
   IssueActionType,
-  processFindingIssues,
   nsIssueTag,
+  processFindingIssues,
 } from "./nowsecure-issues";
 import * as github from "@actions/github";
 import GitHub from "./types/github";
@@ -48,10 +54,8 @@ const getRepo = () => {
 };
 
 const getNowSecure = () => {
-  const apiUrl = core.getInput("api_url");
-  const labApiUrl = core.getInput("lab_api_url");
-  const platformToken = core.getInput("platform_token");
-  return new NowSecure(platformToken, apiUrl, labApiUrl);
+  const platform = platformConfig();
+  return new NowSecure(platform.token, platform.apiUrl, platform.labApiUrl);
 };
 
 export async function run() {
@@ -87,9 +91,11 @@ export async function run() {
   console.log(`${existingIssues.length} issues found for the repository`);
 
   const actionList = processFindingIssues(
+    assessment,
     report.findings,
     existingIssues,
-    jobConfig.filter
+    jobConfig.filter,
+    jobConfig.key
   );
 
   if (!actionList.length) {
@@ -112,7 +118,7 @@ export async function run() {
       case IssueActionType.CREATE:
         await repo.createIssue({
           title: finding.title,
-          body: buildBody(finding),
+          body: buildBody(assessment, finding, jobConfig.key),
         });
         break;
 
@@ -123,11 +129,15 @@ export async function run() {
   }
 }
 
-export function buildBody(finding: Finding) {
+export function buildBody(
+  assessment: Assessment,
+  finding: Finding,
+  keyParams: KeyParams
+) {
   let result;
   let severity = finding.severity;
   let issue = finding.check.issue;
-  result = nsIssueTag(finding);
+  result = nsIssueTag(assessment, finding, keyParams);
   result += "<h3>Severity</h3>";
   result += severity ? severity : "N/A";
   result += "<h3>Description:</h3>";

@@ -7,13 +7,16 @@
 import * as core from "@actions/core";
 import fs from "fs";
 import { NowSecure } from "./nowsecure-client";
-import { getPlatformToken } from "./utils";
+import { platformConfig } from "./utils";
 
 async function run() {
   try {
-    const apiUrl = core.getInput("api_url");
-    const labApiUrl = core.getInput("lab_api_url");
-    const ns = new NowSecure(getPlatformToken(), apiUrl, labApiUrl);
+    const platform = platformConfig();
+    const ns = new NowSecure(
+      platform.token,
+      platform.apiUrl,
+      platform.labApiUrl
+    );
     const groupId = core.getInput("group_id");
     const appFile = core.getInput("app_file");
     const licenseWorkaround = core.getBooleanInput("license_workaround");

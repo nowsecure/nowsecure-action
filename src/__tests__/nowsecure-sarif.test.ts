@@ -9,6 +9,7 @@ import { NowSecure, DEFAULT_API_URL } from "../nowsecure-client";
 import nock from "nock";
 import path from "path";
 import { HttpClientError } from "@actions/http-client";
+import { DEFAULT_KEY_PARAMS } from "../utils";
 
 const platformToken = "AAABBB";
 const assessmentId = "CCCDDD";
@@ -29,7 +30,7 @@ describe("SARIF conversion", () => {
       );
 
     const report = await ns.pullReport(assessmentId);
-    const sarif = await convertToSarif(report);
+    const sarif = await convertToSarif(report, DEFAULT_KEY_PARAMS);
     expect(sarif).toMatchSnapshot();
   });
 
@@ -51,7 +52,7 @@ describe("SARIF conversion", () => {
         );
 
       const report = await ns.pullReport(assessmentId);
-      const sarif = await convertToSarif(report);
+      const sarif = await convertToSarif(report, DEFAULT_KEY_PARAMS);
       expect(sarif).toMatchSnapshot();
       expect(scope1.isDone());
       expect(scope2.isDone());
