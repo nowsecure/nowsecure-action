@@ -4,8 +4,6 @@
  * SPDX-License-Identifier: MIT
  */
 
-/* eslint-disable @typescript-eslint/no-unused-vars */
-
 import { promises } from "fs";
 import { convertToSnapshot } from "../nowsecure-snapshot";
 import type { Deputy } from "../types/deputy";
@@ -29,9 +27,10 @@ describe("Snapshot conversion", () => {
 
   test("can perform conversion", async () => {
     const data = await readFile(
-      path.join(__dirname, "resources", "deputy.json")
+      path.join(__dirname, "resources", "deputy.json"),
+      "utf8"
     );
-    const parsed = JSON.parse(data.toString());
+    const parsed = JSON.parse(data);
     const snapshot = convertToSnapshot(parsed as Deputy, "", context);
     expect(snapshot).toMatchSnapshot();
   });

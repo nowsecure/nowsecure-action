@@ -1,15 +1,27 @@
-import { Finding } from "../types/platform";
+/*
+ * Copyright © 2022 NowSecure Inc.
+ *
+ * SPDX-License-Identifier: MIT
+ */
 
+import fs from "fs";
+import path from "path";
+import { Finding } from "../types/platform";
 import { JSONObject, parseFilter, findingMatchesFilter } from "../utils";
 
-const FINDINGS: Finding[] = require("./resources/filter/findings.json");
+const findings: Finding[] = JSON.parse(
+  fs.readFileSync(
+    path.join(__dirname, "resources", "filter", "findings.json"),
+    "utf8"
+  )
+);
 
 describe("test filters", () => {
   function filterTest(filterDef: JSONObject) {
     const filter = parseFilter(filterDef);
-    return FINDINGS.filter((finding) =>
-      findingMatchesFilter(finding, filter)
-    ).map((finding) => finding.key);
+    return findings
+      .filter((finding) => findingMatchesFilter(finding, filter))
+      .map((finding) => finding.key);
   }
 
   function severityTest(severity: string) {

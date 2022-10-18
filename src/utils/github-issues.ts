@@ -1,3 +1,9 @@
+/*
+ * Copyright © 2022 NowSecure Inc.
+ *
+ * SPDX-License-Identifier: MIT
+ */
+
 import { Octokit } from "@octokit/action";
 
 import GitHub from "../types/github";

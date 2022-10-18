@@ -4,10 +4,9 @@
  * SPDX-License-Identifier: MIT
  */
 
-/* eslint-disable @typescript-eslint/no-unused-vars */
-
 import { NowSecure, DEFAULT_API_URL } from "../nowsecure-client";
-import nock, { load } from "nock";
+import nock from "nock";
+import fs from "fs";
 import path from "path";
 import { Filter, parseFilter } from "../utils";
 import {
@@ -24,7 +23,7 @@ const assessmentId = "CCCDDD";
 async function loadFindings(
   ns: NowSecure
 ): Promise<[Finding[], Finding[], Filter]> {
-  const scope = nock(DEFAULT_API_URL)
+  const _scope = nock(DEFAULT_API_URL)
     .get("/graphql")
     .query(true)
     .replyWithFile(
@@ -50,12 +49,12 @@ describe("create Issues", () => {
   test("can create issues", async () => {
     const [findings, expected, filter] = await loadFindings(ns);
 
-    const existing = require(path.join(
-      __dirname,
-      "resources",
-      "issues",
-      "before-issues.json"
-    ));
+    const existing = JSON.parse(
+      fs.readFileSync(
+        path.join(__dirname, "resources", "issues", "before-issues.json"),
+        "utf8"
+      )
+    );
     const actions = processFindingIssues(findings, existing, filter);
     const expectedActions: IssueAction[] = expected.map((x) => {
       return {
@@ -68,13 +67,13 @@ describe("create Issues", () => {
   });
 
   test("can re-identify issues", async () => {
-    const [findings, expected, filter] = await loadFindings(ns);
-    const postGeneration = require(path.join(
-      __dirname,
-      "resources",
-      "issues",
-      "after-issues.json"
-    ));
+    const [findings, _expected, filter] = await loadFindings(ns);
+    const postGeneration = JSON.parse(
+      fs.readFileSync(
+        path.join(__dirname, "resources", "issues", "after-issues.json"),
+        "utf8"
+      )
+    );
     const actions = processFindingIssues(findings, postGeneration, filter);
     expect(actions).toEqual([]);
   });

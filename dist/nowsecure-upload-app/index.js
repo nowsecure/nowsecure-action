@@ -22557,6 +22557,11 @@ exports.version = "2.1.1";
 
 "use strict";
 
+/*
+ * Copyright © 2022 NowSecure Inc.
+ *
+ * SPDX-License-Identifier: MIT
+ */
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
@@ -22594,7 +22599,7 @@ const nowsecure_snapshot_1 = __nccwpck_require__(2827);
 const { writeFile } = fs_1.promises;
 /** Promisified setTimeout */
 function sleep(milliseconds) {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve, _reject) => {
         setTimeout(resolve, milliseconds);
     });
 }
@@ -22788,6 +22793,7 @@ class NsConfig {
      * is called.
      */
     parseConfig(config) {
+        /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
         const cfg = Object.assign({}, config);
         if ("filter" in cfg) {
             if (typeof cfg.filter === "string") {
@@ -22881,6 +22887,11 @@ exports.severity = ["info", "medium", "low", "high", "critical"];
 
 "use strict";
 
+/*
+ * Copyright © 2022 NowSecure Inc.
+ *
+ * SPDX-License-Identifier: MIT
+ */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.KeyError = exports.ValueError = exports.CustomError = void 0;
 /** base class for custom errors, sets the Error.name field to the constructor's name */
@@ -22909,6 +22920,11 @@ exports.KeyError = KeyError;
 
 "use strict";
 
+/*
+ * Copyright © 2022 NowSecure Inc.
+ *
+ * SPDX-License-Identifier: MIT
+ */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.DEFAULT_ISSUES_FILTER = exports.DEFAULT_SARIF_FILTER = exports.parseFilter = exports.findingMatchesFilter = exports.InvalidFilterError = void 0;
 const config_types_1 = __nccwpck_require__(2459);
@@ -22953,6 +22969,7 @@ function severityToSarif(input) {
     return severityLevels.slice(0, severityLevels.indexOf(input) + 1);
 }
 /** Returns true if the test parameter is a (possibly empty) array of strings */
+/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
 function isStringArray(test) {
     return (Array.isArray(test) && test.findIndex((x) => typeof x !== "string") == -1);
 }
@@ -23036,6 +23053,11 @@ exports.DEFAULT_ISSUES_FILTER = {
 
 "use strict";
 
+/*
+ * Copyright © 2022 NowSecure Inc.
+ *
+ * SPDX-License-Identifier: MIT
+ */
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });

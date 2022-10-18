@@ -1,3 +1,9 @@
+/*
+ * Copyright © 2022 NowSecure Inc.
+ *
+ * SPDX-License-Identifier: MIT
+ */
+
 import { promises } from "fs";
 import * as core from "@actions/core";
 import { convertToSarif } from "../nowsecure-sarif";
@@ -13,7 +19,7 @@ const { writeFile } = promises;
 
 /** Promisified setTimeout */
 export function sleep(milliseconds: number): Promise<void> {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve, _reject) => {
     setTimeout(resolve, milliseconds);
   });
 }
