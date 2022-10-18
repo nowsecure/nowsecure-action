@@ -20,6 +20,9 @@ configs:
   invalid_sev_list:
     labels:
       always: 3
+  invalid_category_type:
+    labels:
+      category-labels: 3
   all_keys:
     labels:
       always: always
@@ -32,3 +35,4 @@ configs:
       high:
         - high
       critical: critical
+      category-labels: true

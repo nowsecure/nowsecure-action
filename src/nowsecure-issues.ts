@@ -143,6 +143,12 @@ export function findingLabels(finding: Finding, labelConfig: Labels) {
 
   // pick the labels from 'always' and the finding's severity
   const labels = (labelConfig.always || []).concat(labelConfig[severity] || []);
+
+  // add the finding category in if appropriate
+  if (labelConfig.categoryLabels && finding.category) {
+    labels.push(finding.category);
+  }
+
   // de-dedup.
   return [...new Set(labels)];
 }

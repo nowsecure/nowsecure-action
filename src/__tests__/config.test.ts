@@ -130,6 +130,7 @@ describe("config file validation", () => {
       medium: ["medium"],
       high: ["high"],
       critical: ["critical"],
+      categoryLabels: true,
     });
 
     const invalid = (name: string) => {
@@ -138,6 +139,7 @@ describe("config file validation", () => {
     expect(invalid("invalid_type")).toThrow(TypeError);
     expect(invalid("invalid_list")).toThrow(TypeError);
     expect(invalid("invalid_keys")).toThrow(KeyError);
+    expect(invalid("invalid_category_type")).toThrow(TypeError);
     expect(invalid("invalid_sev_list")).toThrow(TypeError);
   });
 });

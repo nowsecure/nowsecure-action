@@ -54,11 +54,15 @@ const platformGql = (reportId: string): string => `{
         findings {
           kind
           key
+          checkId
           title
           summary
+          category
           affected
           severity
+          impactType
           uniqueVulnerabilityId
+          cvss
           context {
             fields
             rows
@@ -73,14 +77,24 @@ const platformGql = (reportId: string): string => `{
               recommendation
               category
               cvss
+              cve
               codeSamples {
+                platform
                 syntax
                 caption
                 block
               }
               guidanceLinks {
+                platform
                 caption
                 url
+              }
+              regulations {
+                label
+                links {
+                  title
+                  url
+                }
               }
             }
           }

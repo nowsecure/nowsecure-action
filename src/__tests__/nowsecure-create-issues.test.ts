@@ -26,10 +26,7 @@ async function loadFindings(
   const _scope = nock(DEFAULT_API_URL)
     .get("/graphql")
     .query(true)
-    .replyWithFile(
-      200,
-      path.join(__dirname, "resources", "issues", "assessment.json")
-    );
+    .replyWithFile(200, path.join(__dirname, "resources", "assessment.json"));
 
   const data = await ns.pullReport(assessmentId);
   const assessment = data?.data?.auto?.assessments[0];

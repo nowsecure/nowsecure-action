@@ -73,7 +73,8 @@
         "low": { "$ref": "#/$defs/labellistorstring" },
         "medium": { "$ref": "#/$defs/labellistorstring" },
         "high": { "$ref": "#/$defs/labellistorstring" },
-        "critical": { "$ref": "#/$defs/labellistorstring" }
+        "critical": { "$ref": "#/$defs/labellistorstring" },
+        "category-labels": { "type": "boolean" }
       },
       "unevaluatedProperties": false
     },

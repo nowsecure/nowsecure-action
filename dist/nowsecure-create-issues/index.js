@@ -31563,11 +31563,15 @@ const platformGql = (reportId) => `{
         findings {
           kind
           key
+          checkId
           title
           summary
+          category
           affected
           severity
+          impactType
           uniqueVulnerabilityId
+          cvss
           context {
             fields
             rows
@@ -31582,14 +31586,24 @@ const platformGql = (reportId) => `{
               recommendation
               category
               cvss
+              cve
               codeSamples {
+                platform
                 syntax
                 caption
                 block
               }
               guidanceLinks {
+                platform
                 caption
                 url
+              }
+              regulations {
+                label
+                links {
+                  title
+                  url
+                }
               }
             }
           }
@@ -31937,6 +31951,10 @@ function findingLabels(finding, labelConfig) {
         : rawSeverity;
     // pick the labels from 'always' and the finding's severity
     const labels = (labelConfig.always || []).concat(labelConfig[severity] || []);
+    // add the finding category in if appropriate
+    if (labelConfig.categoryLabels && finding.category) {
+        labels.push(finding.category);
+    }
     // de-dedup.
     return [...new Set(labels)];
 }
@@ -32542,7 +32560,7 @@ const FILTER_KEYS = [
 const KEY_KEYS = ["package", "platform", "v1-key"];
 const ISSUE_CONFIG_KEYS = ["filter", "key", "labels"];
 const SARIF_CONFIG_KEYS = ["filter", "key"];
-const LABEL_KEYS = [
+const LABEL_LIST_KEYS = [
     "always",
     "info",
     "warning",
@@ -32551,6 +32569,7 @@ const LABEL_KEYS = [
     "high",
     "critical",
 ];
+const LABEL_KEYS = [...LABEL_LIST_KEYS, "category-labels"];
 const ALL_CONFIG_KEYS = Array.from(new Set(ISSUE_CONFIG_KEYS.concat(SARIF_CONFIG_KEYS)));
 /** Keys valid at the outer level */
 const OUTER_KEYS = FILTER_KEYS.concat(["filters", "configs", "key"]);
@@ -32752,7 +32771,10 @@ class NsConfig {
     }
     parseLabels(labels) {
         const checkList = (test, listName) => {
-            if (typeof test === "string") {
+            if (test === undefined) {
+                return [];
+            }
+            else if (typeof test === "string") {
                 return [test];
             }
             if (!(0, filter_1.isStringArray)(test)) {
@@ -32774,10 +32796,17 @@ class NsConfig {
         }
         checkObject(labels, LABEL_KEYS, "labels");
         const ret = {};
-        for (const key of LABEL_KEYS) {
+        for (const key of LABEL_LIST_KEYS) {
             if (key in labels) {
                 ret[key] = checkList(labels[key], key);
             }
+        }
+        if ("category-labels" in labels) {
+            const categoryLabels = labels["category-labels"];
+            if (typeof categoryLabels !== "boolean") {
+                throw new TypeError("category-labels must be a boolean");
+            }
+            ret.categoryLabels = categoryLabels;
         }
         return ret;
     }

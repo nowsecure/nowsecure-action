@@ -32,7 +32,7 @@ export interface KeyParams {
   v1package: string;
 }
 
-export interface Labels {
+export interface LabelLists {
   always?: string[];
   info?: string[];
   warning?: string[];
@@ -40,6 +40,10 @@ export interface Labels {
   medium?: string[];
   high?: string[];
   critical?: string[];
+}
+
+export interface Labels extends LabelLists {
+  categoryLabels?: boolean;
 }
 
 export interface IssuesJobConfig {

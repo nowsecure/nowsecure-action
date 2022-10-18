@@ -7,10 +7,7 @@ import { Assessment } from "../types/platform";
 import { KeyParams, findingKey } from "../utils";
 
 const ASSESSMENT: Assessment = JSON.parse(
-  fs.readFileSync(
-    path.join(__dirname, "resources", "issues", "assessment.json"),
-    "utf8"
-  )
+  fs.readFileSync(path.join(__dirname, "resources", "assessment.json"), "utf8")
 ).data.auto.assessments[0];
 
 describe("key derivation", () => {

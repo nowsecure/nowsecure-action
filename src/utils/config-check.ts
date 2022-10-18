@@ -20,6 +20,7 @@ import {
   SarifJobConfig,
   KeyParams,
   Labels,
+  LabelLists,
 } from "./config-types";
 import { ValueError, KeyError } from "./errors";
 import {
@@ -44,7 +45,7 @@ const ISSUE_CONFIG_KEYS: string[] = ["filter", "key", "labels"];
 
 const SARIF_CONFIG_KEYS: string[] = ["filter", "key"];
 
-const LABEL_KEYS: (keyof Labels)[] = [
+const LABEL_LIST_KEYS: (keyof LabelLists)[] = [
   "always",
   "info",
   "warning",
@@ -53,6 +54,8 @@ const LABEL_KEYS: (keyof Labels)[] = [
   "high",
   "critical",
 ];
+
+const LABEL_KEYS: string[] = [...LABEL_LIST_KEYS, "category-labels"];
 
 interface PartiallyParsedConfig {
   filter: Filter;
@@ -292,7 +295,9 @@ export class NsConfig {
 
   private parseLabels(labels?: JSONObject): Labels {
     const checkList = (test: JSONType, listName: string): string[] => {
-      if (typeof test === "string") {
+      if (test === undefined) {
+        return [];
+      } else if (typeof test === "string") {
         return [test];
       }
       if (!isStringArray(test)) {
@@ -322,10 +327,17 @@ export class NsConfig {
 
     checkObject(labels, LABEL_KEYS, "labels");
     const ret: Labels = {};
-    for (const key of LABEL_KEYS) {
+    for (const key of LABEL_LIST_KEYS) {
       if (key in labels) {
         ret[key] = checkList(labels[key], key);
       }
+    }
+    if ("category-labels" in labels) {
+      const categoryLabels = labels["category-labels"];
+      if (typeof categoryLabels !== "boolean") {
+        throw new TypeError("category-labels must be a boolean");
+      }
+      ret.categoryLabels = categoryLabels;
     }
     return ret;
   }

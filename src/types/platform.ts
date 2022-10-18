@@ -85,15 +85,30 @@ export interface Report {
 
 export type FindingType = "static" | "dynamic";
 export type Severity = "info" | "medium" | "low" | "high" | "critical";
+export type ImpactType =
+  | "artifact"
+  | "indeterminate"
+  | "pass"
+  | "info"
+  | "warn"
+  | "medium"
+  | "low"
+  | "high"
+  | "critical";
 
 export interface Finding {
   kind: FindingType;
   key: string;
+  checkId: string;
   title: string;
   summary: string | null;
+  category: string;
   affected: boolean;
   severity: Severity;
+  impactType: ImpactType;
   uniqueVulnerabilityId: string;
+  cvss: number | null;
+  cvssVector: string;
   context: {
     fields: {
       [key: string]: { title: string };
@@ -110,8 +125,11 @@ export interface Finding {
       impactSummary: string | null;
       stepsToReproduce: string | null;
       recommendation: string | null;
+      regulations: Regulation[] | null;
       category: string | null;
       cvss: number | null;
+      cvssVector: string;
+      cve: string | null;
       codeSamples: CodeSample[] | null;
       guidanceLinks: GuidanceLink[] | null;
     } | null;
@@ -122,9 +140,20 @@ export interface CodeSample {
   syntax: string;
   caption: string;
   block: string;
+  platform: string;
 }
 
 export interface GuidanceLink {
   caption: string;
   url: string;
+  platform: string;
+}
+
+export interface RegulationLink {
+  title: string;
+  url: string | null;
+}
+export interface Regulation {
+  label: string;
+  links: RegulationLink[];
 }
