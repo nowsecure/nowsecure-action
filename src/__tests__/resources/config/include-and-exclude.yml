@@ -1,0 +1,6 @@
+filters:
+  fail:
+    exclude-checks:
+      - check_1
+    include-checks:
+      - check_1

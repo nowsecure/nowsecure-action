@@ -1,0 +1,28 @@
+include-warnings: true
+exclude-checks:
+  - check_1
+include-checks:
+  - check_2
+minimum-severity: medium
+
+filters:
+  valid-filter:
+    include-warnings: false
+    exclude-checks:
+      - check_3
+    include-checks:
+      - check_4
+    minimum-severity: info
+
+configs:
+  empty: {}
+  inline-filter:
+    filter:
+      include-warnings: true
+      exclude-checks:
+        - check_5
+      include-checks:
+        - check_6
+      minimum-severity: low
+  reference-filter:
+    filter: valid-filter

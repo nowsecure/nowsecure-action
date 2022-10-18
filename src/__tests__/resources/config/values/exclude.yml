@@ -1,0 +1,4 @@
+filters:
+  fail:
+    exclude-checks:
+      - "not-a-valid-check"

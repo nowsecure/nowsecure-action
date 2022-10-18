@@ -1,0 +1,3 @@
+filters:
+  fail:
+    minimum-severity: not-a-level
