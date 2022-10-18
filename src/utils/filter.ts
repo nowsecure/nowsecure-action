@@ -1,3 +1,9 @@
+/*
+ * Copyright © 2022 NowSecure Inc.
+ *
+ * SPDX-License-Identifier: MIT
+ */
+
 import type { Finding } from "../types/platform";
 import { severity, Filter, JSONObject, JSONType } from "./config-types";
 import { ValueError, CustomError } from "./errors";
@@ -52,6 +58,7 @@ function severityToSarif(input: string): Array<string> {
 }
 
 /** Returns true if the test parameter is a (possibly empty) array of strings */
+/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
 function isStringArray(test: any): test is string[] {
   return (
     Array.isArray(test) && test.findIndex((x) => typeof x !== "string") == -1

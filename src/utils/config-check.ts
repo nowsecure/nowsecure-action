@@ -40,6 +40,7 @@ const SARIF_CONFIG_KEYS: string[] = ["filter"];
 
 interface PartiallyParsedConfig {
   filter: Filter;
+  /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
   [index: string]: any;
 }
 
@@ -169,6 +170,7 @@ export class NsConfig {
    * is called.
    */
   private parseConfig(config: JSONObject): PartiallyParsedConfig {
+    /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
     const cfg: any = { ...config };
 
     if ("filter" in cfg) {

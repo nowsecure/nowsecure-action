@@ -1,3 +1,9 @@
+/*
+ * Copyright © 2022 NowSecure Inc.
+ *
+ * SPDX-License-Identifier: MIT
+ */
+
 import fs from "fs";
 import path from "path";
 import { YAMLSyntaxError } from "yaml/util";
