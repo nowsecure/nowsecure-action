@@ -1,4 +1,3 @@
 /node_modules
 /dist
 /lib
-/src/__tests__/resources/config/invalid-yaml.yml

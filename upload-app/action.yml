@@ -2,12 +2,9 @@ name: "NowSecure: Upload app"
 description: "Upload an app to NowSecure"
 author: "NowSecure Inc."
 inputs:
-  platform_token:
-    required: false
-    description: "NowSecure Platform token."
   token:
-    required: false
-    description: "Deprecated: use platform_token."
+    required: true
+    description: "NowSecure Platform token."
   api_url:
     required: false
     description: "NowSecure GraphQL API endpoint."
@@ -26,6 +23,7 @@ inputs:
     required: true
     description: "Workaround for improved license limit reached UX."
     default: true
+
 runs:
   using: "node16"
   main: "../dist/nowsecure-upload-app/index.js"

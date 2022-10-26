@@ -4,6 +4,8 @@
  * SPDX-License-Identifier: MIT
  */
 
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import { convertToSarif } from "../nowsecure-sarif";
 import { NowSecure, DEFAULT_API_URL } from "../nowsecure-client";
 import nock from "nock";
@@ -14,13 +16,13 @@ const platformToken = "AAABBB";
 const assessmentId = "CCCDDD";
 
 // Silence warnings from configuration manager.
-const _consoleWarnMock = jest.spyOn(console, "warn").mockImplementation();
+const consoleWarnMock = jest.spyOn(console, "warn").mockImplementation();
 
 describe("SARIF conversion", () => {
   const ns = new NowSecure(platformToken);
 
   test("can perform conversion", async () => {
-    const _scope = nock(DEFAULT_API_URL)
+    const scope = nock(DEFAULT_API_URL)
       .get("/graphql")
       .query(true)
       .replyWithFile(
@@ -59,7 +61,7 @@ describe("SARIF conversion", () => {
   );
 
   test("request fails after 4 consequtive 502 errors", async () => {
-    const _scope1 = nock(DEFAULT_API_URL)
+    const scope1 = nock(DEFAULT_API_URL)
       .get("/graphql")
       .query(true)
       .times(4)

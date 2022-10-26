@@ -1,4 +1,0 @@
-filters:
-  fail:
-    exclude-checks:
-      - 0

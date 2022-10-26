@@ -2,18 +2,9 @@ name: "NowSecure: Convert SARIF"
 description: "Convert NowSecure assessment to SARIF to be uploaded to GHAS"
 author: "NowSecure Inc."
 inputs:
-  platform_token:
-    required: false
-    description: "NowSecure Platform token."
   token:
-    required: false
-    description: "Deprecated: use platform_token."
-  group_id:
     required: true
-    description: "Group ID for the application in Platform."
-  github_token:
-    required: false
-    default: ${{ github.token }}
+    description: "NowSecure Platform token."
   api_url:
     required: false
     description: "NowSecure GraphQL API endpoint."
@@ -29,14 +20,7 @@ inputs:
   config_path:
     required: false
     description: "Path containing .nsconfig.yml"
-    default: ""
-  config:
-    required: false
-    description: "Name of the configuration in .nsconfig.yml to use"
-    default: ""
-  report_id:
-    required: false
-    description: "The report ID."
+    default: "."
   poll_interval_ms:
     required: false
     description: "Interval to poll Platform for application details. Default is once a minute."
@@ -49,6 +33,15 @@ inputs:
     required: false
     description: "Enable posting of dependencies results to GitHub."
     default: false
+  group_id:
+    required: true
+    description: "Group ID for the application in Platform."
+  report_id:
+    required: false
+    description: "The report ID."
+  github_token:
+    required: false
+    default: ${{ github.token }}
   github_correlator:
     required: false
     description: "Used for the correlator field in the SBOM format. Distinguishes independent Workflows."

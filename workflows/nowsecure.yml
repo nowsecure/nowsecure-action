@@ -61,9 +61,9 @@ jobs:
 
       - id: upload
         name: NowSecure upload app
-        uses: nowsecure/nowsecure-action/upload-app@v3
+        uses: nowsecure/nowsecure-action/upload-app@v1
         with:
-          platform_token: ${{ secrets.NS_TOKEN }}
+          token: ${{ secrets.NS_TOKEN }}
           app_file: app-insecure-debug.apk
           # TODO: Replace the Group ID.
           group_id: "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
@@ -80,11 +80,11 @@ jobs:
         uses: actions/checkout@v2
 
       - name: NowSecure download report
-        uses: nowsecure/nowsecure-action/convert-sarif@v3
+        uses: nowsecure/nowsecure-action/convert-sarif@v1
         timeout-minutes: 60
         with:
           report_id: ${{ needs.scan.outputs.report_id }}
-          platform_token: ${{ secrets.NS_TOKEN }}
+          token: ${{ secrets.NS_TOKEN }}
           # TODO: Replace the Group ID.
           group_id: "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
 

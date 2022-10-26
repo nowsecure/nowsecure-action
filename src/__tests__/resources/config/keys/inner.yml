@@ -1,3 +1,0 @@
-filters:
-  fail:
-    not-permitted-key: true
