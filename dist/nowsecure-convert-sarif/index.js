@@ -28948,6 +28948,20 @@ function severityToNotification(input) {
         return "none";
     }
 }
+function severityToScore(input) {
+    switch (input) {
+        case "critical":
+            return 9.5;
+        case "high":
+            return 8.0;
+        case "medium":
+            return 5.5;
+        case "low":
+            return 2.0;
+        case "info":
+            return 0;
+    }
+}
 /**
  * Convert a Platform report to Sarif.
  *
@@ -29066,6 +29080,8 @@ function convertToSarif(data, keyParams = utils_1.DEFAULT_KEY_PARAMS, filter = u
                     },
                     tags,
                     precision: "medium",
+                    // security-severity is a string (even though it's a number)
+                    "security-severity": severityToScore(finding.severity).toString(),
                 },
                 help: {
                     // NOTE: In practice this should not display on the GitHub UI.
