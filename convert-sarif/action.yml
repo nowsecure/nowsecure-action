@@ -3,11 +3,8 @@ description: "Convert NowSecure assessment to SARIF to be uploaded to GHAS"
 author: "NowSecure Inc."
 inputs:
   platform_token:
-    required: false
+    required: true
     description: "NowSecure Platform token."
-  token:
-    required: false
-    description: "Deprecated: use platform_token."
   group_id:
     required: true
     description: "Group ID for the application in Platform."

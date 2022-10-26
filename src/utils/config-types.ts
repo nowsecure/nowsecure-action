@@ -25,12 +25,21 @@ export interface Filter {
   includeWarnings?: boolean;
 }
 
+export interface KeyParams {
+  includePackage: boolean;
+  includePlatform: boolean;
+  v1platform: "ios" | "android";
+  v1package: string;
+}
+
 export interface IssuesJobConfig {
   filter: Filter;
+  key: KeyParams;
 }
 
 export interface SarifJobConfig {
   filter: Filter;
+  key: KeyParams;
 }
 
 export type JobConfig = IssuesJobConfig | SarifJobConfig;

@@ -28685,6 +28685,7 @@ const platformGql = (reportId) => `{
   auto {
     assessments(scope:"*" refs:["${reportId.replace(/[^0-9a-z-]/gi, "")}"]) {
       deputy: _raw(path: "yaap.complete.results[0].deputy.deputy.data[0].results")
+      platformType
       packageKey
       taskId
       applicationRef
@@ -28875,9 +28876,7 @@ function run() {
         try {
             const config = new utils_1.NsConfig(core.getInput("config_path"));
             const jobConfig = config.getConfig(core.getInput("config"), "sarif");
-            const apiUrl = core.getInput("api_url");
-            const labApiUrl = core.getInput("lab_api_url");
-            const labUrl = core.getInput("lab_url");
+            const platform = (0, action_utils_1.platformConfig)();
             let pollInterval = parseInt(core.getInput("poll_interval_ms"), 10);
             if (isNaN(pollInterval)) {
                 pollInterval = 60000;
@@ -28886,13 +28885,13 @@ function run() {
             const enableDependencies = core.getBooleanInput("enable_dependencies");
             const githubToken = core.getInput("github_token");
             const githubCorrelator = core.getInput("github_correlator");
-            const ns = new nowsecure_client_1.NowSecure((0, utils_1.getPlatformToken)(), apiUrl, labApiUrl);
+            const ns = new nowsecure_client_1.NowSecure(platform.token, platform.apiUrl, platform.labApiUrl);
             const report = yield ns.pollForReport(reportId, pollInterval);
             if (enableDependencies) {
                 yield (0, action_utils_1.outputToDependencies)(report, github.context, githubCorrelator, githubToken);
             }
             if (enableSarif) {
-                yield (0, action_utils_1.outputToSarif)(report, labUrl, jobConfig.filter);
+                yield (0, action_utils_1.outputToSarif)(report, jobConfig.key, jobConfig.filter, platform.labUrl);
             }
         }
         catch (e) {
@@ -28925,22 +28924,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.convertToSarif = void 0;
-const crypto_1 = __importDefault(__nccwpck_require__(6113));
 const ripgrep_js_1 = __nccwpck_require__(8907);
 const utils_1 = __nccwpck_require__(6252);
 const DEFAULT_LAB_URL = "https://lab.nowsecure.com";
 const SARIF_SCHEMA_URL = "https://raw.githubusercontent.com/schemastore/schemastore/master/src/schemas/json/sarif-2.1.0-rtm.5.json";
-/**
- * Take the SHA256 of an input string and output in hex.
- */
-function sha256(input) {
-    return crypto_1.default.createHash("sha256").update(input).digest("hex");
-}
 /**
  * Convert NowSecure severity to a SARIF notification level.
  */
@@ -28966,7 +28955,7 @@ function severityToNotification(input) {
  * otherwise data may be missing, in which case the behavior of this function
  * is undefined.
  */
-function convertToSarif(data, labUrl = DEFAULT_LAB_URL, filter = utils_1.DEFAULT_SARIF_FILTER) {
+function convertToSarif(data, keyParams = utils_1.DEFAULT_KEY_PARAMS, filter = utils_1.DEFAULT_SARIF_FILTER, labUrl = DEFAULT_LAB_URL) {
     return __awaiter(this, void 0, void 0, function* () {
         const assessment = data.data.auto.assessments[0];
         const { taskId, applicationRef } = assessment;
@@ -29062,7 +29051,7 @@ function convertToSarif(data, labUrl = DEFAULT_LAB_URL, filter = utils_1.DEFAULT
                 }
             }
             rules.push({
-                id: sha256(finding.key),
+                id: (0, utils_1.findingKey)(assessment, finding, keyParams),
                 name: finding.title,
                 helpUri: `${labUrl}/app/${applicationRef}/assessment/${taskId}#finding-${finding.key}`,
                 shortDescription: {
@@ -29099,7 +29088,7 @@ function convertToSarif(data, labUrl = DEFAULT_LAB_URL, filter = utils_1.DEFAULT
             // result that does not show detailed line number information (refer to the
             // evidence table instead).
             const simpleResult = {
-                ruleId: sha256(finding.key),
+                ruleId: (0, utils_1.findingKey)(assessment, finding, keyParams),
                 message: {
                     // Markdown doesn't work here. We render our information in the "help"
                     // field in the reporting descriptor.
@@ -29139,7 +29128,7 @@ function convertToSarif(data, labUrl = DEFAULT_LAB_URL, filter = utils_1.DEFAULT
                             const locations = yield searchLocations(`class ${className}`);
                             for (const physicalLocation of locations) {
                                 localResults.push({
-                                    ruleId: sha256(finding.key),
+                                    ruleId: (0, utils_1.findingKey)(assessment, finding, keyParams),
                                     message: {
                                         text: issueDescription,
                                     },
@@ -29413,7 +29402,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.outputToSarif = exports.outputToDependencies = exports.getPlatformToken = exports.sleep = void 0;
+exports.outputToSarif = exports.outputToDependencies = exports.platformConfig = exports.sleep = void 0;
 const fs_1 = __nccwpck_require__(7147);
 const core = __importStar(__nccwpck_require__(2186));
 const nowsecure_sarif_1 = __nccwpck_require__(9475);
@@ -29426,22 +29415,15 @@ function sleep(milliseconds) {
     });
 }
 exports.sleep = sleep;
-function getPlatformToken() {
-    const token = core.getInput("token");
-    const platformToken = core.getInput("platform_token");
-    if (token) {
-        if (platformToken) {
-            throw new Error("token and platform_token specified. Use platform_token only");
-        }
-        console.log('"token" is deprecated and will be removed in a future release. Use "platform_token" instead');
-        return token;
-    }
-    if (!platformToken) {
-        throw new Error("platform_token must be specified");
-    }
-    return platformToken;
+function platformConfig() {
+    return {
+        token: core.getInput("platform_token"),
+        apiUrl: core.getInput("api_url"),
+        labApiUrl: core.getInput("lab_api_url"),
+        labUrl: core.getInput("lab_url"),
+    };
 }
-exports.getPlatformToken = getPlatformToken;
+exports.platformConfig = platformConfig;
 function outputToDependencies(report, context, githubCorrelator, githubToken) {
     var _a, _b, _c;
     return __awaiter(this, void 0, void 0, function* () {
@@ -29458,10 +29440,10 @@ function outputToDependencies(report, context, githubCorrelator, githubToken) {
     });
 }
 exports.outputToDependencies = outputToDependencies;
-function outputToSarif(report, labUrl, filter) {
+function outputToSarif(report, keyParams, filter, labUrl) {
     return __awaiter(this, void 0, void 0, function* () {
         console.log("Converting NowSecure report to SARIF...");
-        const sarif = yield (0, nowsecure_sarif_1.convertToSarif)(report, labUrl, filter);
+        const sarif = yield (0, nowsecure_sarif_1.convertToSarif)(report, keyParams, filter, labUrl);
         yield writeFile("NowSecure.sarif", JSON.stringify(sarif));
     });
 }
@@ -29493,6 +29475,7 @@ const yaml_1 = __importDefault(__nccwpck_require__(4603));
 const lodash_1 = __nccwpck_require__(250);
 const errors_1 = __nccwpck_require__(2579);
 const filter_1 = __nccwpck_require__(2284);
+const key_1 = __nccwpck_require__(3225);
 /** Keys for filter objects */
 const FILTER_KEYS = [
     "exclude-checks",
@@ -29500,11 +29483,12 @@ const FILTER_KEYS = [
     "minimum-severity",
     "include-warnings",
 ];
-const ISSUE_CONFIG_KEYS = ["filter"];
-const SARIF_CONFIG_KEYS = ["filter"];
+const KEY_KEYS = ["package", "platform", "v1-key"];
+const ISSUE_CONFIG_KEYS = ["filter", "key"];
+const SARIF_CONFIG_KEYS = ["filter", "key"];
 const ALL_CONFIG_KEYS = Array.from(new Set(ISSUE_CONFIG_KEYS.concat(SARIF_CONFIG_KEYS)));
 /** Keys valid at the outer level */
-const OUTER_KEYS = FILTER_KEYS.concat(["filters", "configs"]);
+const OUTER_KEYS = FILTER_KEYS.concat(["filters", "configs", "key"]);
 /**
  * Loads the data from the .nsconfig.yml file
  *
@@ -29568,6 +29552,7 @@ class NsConfig {
         this.filters = {};
         /** filter constructed from the outermost fields (backward compatibility) */
         this.outerFilter = {};
+        this.keyParams = Object.assign({}, key_1.DEFAULT_KEY_PARAMS);
         const rawConfig = loadRawConfig(configPath);
         if (!rawConfig) {
             return;
@@ -29575,6 +29560,7 @@ class NsConfig {
         checkObject(rawConfig, OUTER_KEYS, "config");
         this.parseFilters(rawConfig, checkIds);
         this.parseConfigs(rawConfig);
+        this.keyParams = this.parseKeys(rawConfig) || Object.assign({}, key_1.DEFAULT_KEY_PARAMS);
     }
     parseFilters(rawConfig, checkIds = null) {
         this.outerFilter = (0, filter_1.parseFilter)(rawConfig, checkIds);
@@ -29628,7 +29614,16 @@ class NsConfig {
         else {
             cfg.filter = this.outerFilter;
         }
+        cfg.key = this.parseKeys(cfg);
         return cfg;
+    }
+    parseKeys(cfg) {
+        if ("key" in cfg) {
+            if (checkObject(cfg.key, KEY_KEYS, "key settings")) {
+                return (0, key_1.parseKeyConfig)(cfg.key);
+            }
+        }
+        return null;
     }
     /**
      * Returns the named filter or the outer filter if filterName is falsy
@@ -29666,18 +29661,26 @@ class NsConfig {
         }
     }
     parseIssuesConfig(rawConfig) {
-        rawConfig = rawConfig || { filter: this.outerFilter };
+        rawConfig = rawConfig || {
+            filter: this.outerFilter,
+            key: Object.assign({}, key_1.DEFAULT_KEY_PARAMS),
+        };
         checkObject(rawConfig, ISSUE_CONFIG_KEYS, "Issues job configuration");
         const config = {
             filter: this.mergeFilters(filter_1.DEFAULT_ISSUES_FILTER, rawConfig.filter),
+            key: rawConfig.key || Object.assign({}, this.keyParams),
         };
         return config;
     }
     parseSarifConfig(rawConfig) {
-        rawConfig = rawConfig || { filter: this.outerFilter };
+        rawConfig = rawConfig || {
+            filter: this.outerFilter,
+            key: Object.assign({}, key_1.DEFAULT_KEY_PARAMS),
+        };
         checkObject(rawConfig, SARIF_CONFIG_KEYS, "Sarif job configuration");
         const config = {
             filter: this.mergeFilters(filter_1.DEFAULT_SARIF_FILTER, rawConfig.filter),
+            key: rawConfig.key || Object.assign({}, this.keyParams),
         };
         return config;
     }
@@ -29896,6 +29899,85 @@ __exportStar(__nccwpck_require__(8545), exports);
 __exportStar(__nccwpck_require__(2284), exports);
 __exportStar(__nccwpck_require__(5213), exports);
 __exportStar(__nccwpck_require__(2579), exports);
+__exportStar(__nccwpck_require__(3225), exports);
+
+
+/***/ }),
+
+/***/ 3225:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.parseKeyConfig = exports.findingKey = exports.sha256 = exports.DEFAULT_KEY_PARAMS = void 0;
+const crypto_1 = __importDefault(__nccwpck_require__(6113));
+const errors_1 = __nccwpck_require__(2579);
+exports.DEFAULT_KEY_PARAMS = {
+    includePackage: true,
+    includePlatform: true,
+    v1package: null,
+    v1platform: null,
+};
+/**
+ * Take the SHA256 of an input string and output in hex.
+ */
+function sha256(input) {
+    return crypto_1.default.createHash("sha256").update(input).digest("hex");
+}
+exports.sha256 = sha256;
+/**
+ * Derive a key for a finding
+ */
+function findingKey(assessment, finding, keyParams) {
+    if (assessment.packageKey === keyParams.v1package &&
+        assessment.platformType === keyParams.v1platform) {
+        return sha256(finding.key);
+    }
+    const keyInput = [finding.key];
+    if (keyParams.includePlatform) {
+        keyInput.push(assessment.platformType);
+    }
+    if (keyParams.includePackage) {
+        keyInput.push(assessment.packageKey);
+    }
+    return sha256(keyInput.join("|"));
+}
+exports.findingKey = findingKey;
+function parseKeyConfig(keyData) {
+    const keyParams = Object.assign({}, exports.DEFAULT_KEY_PARAMS);
+    if ("v1-key" in keyData) {
+        const v1Key = keyData["v1-key"];
+        if (typeof v1Key !== "string") {
+            throw new TypeError("v1-key must be a string");
+        }
+        const parts = v1Key.split(/\s+/);
+        if (parts.length !== 2) {
+            throw new errors_1.ValueError("v1-key must be of the form <platform> <packageName>");
+        }
+        if (parts[0] !== "android" && parts[0] !== "ios") {
+            throw new errors_1.ValueError(`v1-key: "${parts[0]}" is not a valid platform type`);
+        }
+        [keyParams.v1platform, keyParams.v1package] = parts;
+    }
+    if ("package" in keyData) {
+        if (typeof keyData.package !== "boolean") {
+            throw new TypeError("package must be a boolean");
+        }
+        keyParams.includePackage = keyData.package;
+    }
+    if ("platform" in keyData) {
+        if (typeof keyData.platform !== "boolean") {
+            throw new TypeError("platform must be a boolean");
+        }
+        keyParams.includePlatform = keyData.platform;
+    }
+    return keyParams;
+}
+exports.parseKeyConfig = parseKeyConfig;
 
 
 /***/ }),

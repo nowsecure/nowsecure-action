@@ -18,6 +18,7 @@ import {
   JSONObject,
   IssuesJobConfig,
   SarifJobConfig,
+  KeyParams,
 } from "./config-types";
 import { ValueError, KeyError } from "./errors";
 import {
@@ -25,6 +26,7 @@ import {
   DEFAULT_ISSUES_FILTER,
   DEFAULT_SARIF_FILTER,
 } from "./filter";
+import { DEFAULT_KEY_PARAMS, parseKeyConfig } from "./key";
 
 /** Keys for filter objects */
 const FILTER_KEYS: string[] = [
@@ -34,12 +36,16 @@ const FILTER_KEYS: string[] = [
   "include-warnings",
 ];
 
-const ISSUE_CONFIG_KEYS: string[] = ["filter"];
+const KEY_KEYS: string[] = ["package", "platform", "v1-key"];
 
-const SARIF_CONFIG_KEYS: string[] = ["filter"];
+const ISSUE_CONFIG_KEYS: string[] = ["filter", "key"];
+
+const SARIF_CONFIG_KEYS: string[] = ["filter", "key"];
 
 interface PartiallyParsedConfig {
   filter: Filter;
+  key: KeyParams;
+
   /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
   [index: string]: any;
 }
@@ -49,7 +55,7 @@ const ALL_CONFIG_KEYS: string[] = Array.from(
 );
 
 /** Keys valid at the outer level */
-const OUTER_KEYS = FILTER_KEYS.concat(["filters", "configs"]);
+const OUTER_KEYS = FILTER_KEYS.concat(["filters", "configs", "key"]);
 
 /**
  * Loads the data from the .nsconfig.yml file
@@ -126,6 +132,7 @@ export class NsConfig {
     checkObject(rawConfig, OUTER_KEYS, "config");
     this.parseFilters(rawConfig, checkIds);
     this.parseConfigs(rawConfig);
+    this.keyParams = this.parseKeys(rawConfig) || { ...DEFAULT_KEY_PARAMS };
   }
 
   private parseFilters(rawConfig: JSONObject, checkIds: string[] = null) {
@@ -183,7 +190,18 @@ export class NsConfig {
       cfg.filter = this.outerFilter;
     }
 
+    cfg.key = this.parseKeys(cfg);
+
     return cfg;
+  }
+
+  private parseKeys(cfg: JSONObject): KeyParams {
+    if ("key" in cfg) {
+      if (checkObject(cfg.key, KEY_KEYS, "key settings")) {
+        return parseKeyConfig(cfg.key);
+      }
+    }
+    return null;
   }
 
   /**
@@ -234,19 +252,27 @@ export class NsConfig {
   private parseIssuesConfig(
     rawConfig?: PartiallyParsedConfig
   ): IssuesJobConfig {
-    rawConfig = rawConfig || { filter: this.outerFilter };
+    rawConfig = rawConfig || {
+      filter: this.outerFilter,
+      key: { ...DEFAULT_KEY_PARAMS },
+    };
     checkObject(rawConfig, ISSUE_CONFIG_KEYS, "Issues job configuration");
     const config: IssuesJobConfig = {
       filter: this.mergeFilters(DEFAULT_ISSUES_FILTER, rawConfig.filter),
+      key: rawConfig.key || { ...this.keyParams },
     };
     return config;
   }
 
   private parseSarifConfig(rawConfig?: PartiallyParsedConfig): SarifJobConfig {
-    rawConfig = rawConfig || { filter: this.outerFilter };
+    rawConfig = rawConfig || {
+      filter: this.outerFilter,
+      key: { ...DEFAULT_KEY_PARAMS },
+    };
     checkObject(rawConfig, SARIF_CONFIG_KEYS, "Sarif job configuration");
     const config: SarifJobConfig = {
       filter: this.mergeFilters(DEFAULT_SARIF_FILTER, rawConfig.filter),
+      key: rawConfig.key || { ...this.keyParams },
     };
     return config;
   }
@@ -259,4 +285,6 @@ export class NsConfig {
 
   /** filter constructed from the outermost fields (backward compatibility) */
   private outerFilter: Filter = {};
+
+  private keyParams: KeyParams = { ...DEFAULT_KEY_PARAMS };
 }

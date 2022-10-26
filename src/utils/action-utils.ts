@@ -13,7 +13,7 @@ import {
   ActionContext,
 } from "../nowsecure-snapshot";
 import type { PullReportResponse } from "../types/platform";
-import { Filter } from "./config-types";
+import { Filter, KeyParams } from "./config-types";
 
 const { writeFile } = promises;
 
@@ -24,26 +24,27 @@ export function sleep(milliseconds: number): Promise<void> {
   });
 }
 
-export function getPlatformToken() {
-  const token = core.getInput("token");
-  const platformToken = core.getInput("platform_token");
-  if (token) {
-    if (platformToken) {
-      throw new Error(
-        "token and platform_token specified. Use platform_token only"
-      );
-    }
+export interface PlatformConfig {
+  /** API token */
+  token: string;
 
-    console.log(
-      '"token" is deprecated and will be removed in a future release. Use "platform_token" instead'
-    );
-    return token;
-  }
+  /** GraphQL server */
+  apiUrl: string;
 
-  if (!platformToken) {
-    throw new Error("platform_token must be specified");
-  }
-  return platformToken;
+  /** REST API (uploads) */
+  labApiUrl: string;
+
+  /** UI address */
+  labUrl: string;
+}
+
+export function platformConfig(): PlatformConfig {
+  return {
+    token: core.getInput("platform_token"),
+    apiUrl: core.getInput("api_url"),
+    labApiUrl: core.getInput("lab_api_url"),
+    labUrl: core.getInput("lab_url"),
+  };
 }
 
 export async function outputToDependencies(
@@ -67,10 +68,11 @@ export async function outputToDependencies(
 
 export async function outputToSarif(
   report: PullReportResponse,
-  labUrl: string,
-  filter: Filter
+  keyParams: KeyParams,
+  filter: Filter,
+  labUrl: string
 ) {
   console.log("Converting NowSecure report to SARIF...");
-  const sarif = await convertToSarif(report, labUrl, filter);
+  const sarif = await convertToSarif(report, keyParams, filter, labUrl);
   await writeFile("NowSecure.sarif", JSON.stringify(sarif));
 }

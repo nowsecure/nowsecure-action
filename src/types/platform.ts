@@ -70,6 +70,7 @@ export interface PullReportResponse {
 }
 
 export interface Assessment {
+  platformType: string;
   packageKey: string;
   taskId: string;
   applicationRef: string;

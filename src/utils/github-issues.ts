@@ -21,7 +21,6 @@ export class GitHubRepo {
    */
   constructor(public repoOwner: string, public repoName: string, auth: string) {
     this.octokit = new Octokit({ auth });
-    console.log("octokit loaded");
   }
 
   /**
