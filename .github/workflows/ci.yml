@@ -11,7 +11,9 @@ name: CI
 on:
   push:
     branches:
-      - "*"
+      - main
+      - develop
+  pull_request:
 
 jobs:
   check:
