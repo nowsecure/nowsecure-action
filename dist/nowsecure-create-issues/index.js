@@ -31563,11 +31563,15 @@ const platformGql = (reportId) => `{
         findings {
           kind
           key
+          checkId
           title
           summary
+          category
           affected
           severity
+          impactType
           uniqueVulnerabilityId
+          cvss
           context {
             fields
             rows
@@ -31582,14 +31586,24 @@ const platformGql = (reportId) => `{
               recommendation
               category
               cvss
+              cve
               codeSamples {
+                platform
                 syntax
                 caption
                 block
               }
               guidanceLinks {
+                platform
                 caption
                 url
+              }
+              regulations {
+                label
+                links {
+                  title
+                  url
+                }
               }
             }
           }
@@ -31802,6 +31816,7 @@ function run() {
                     yield repo.createIssue({
                         title: finding.title,
                         body: buildBody(assessment, finding, jobConfig.key),
+                        labels: (0, nowsecure_issues_1.findingLabels)(finding, jobConfig.labels),
                     });
                     break;
                 case nowsecure_issues_1.IssueActionType.REOPEN:
@@ -31841,7 +31856,7 @@ run();
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.processFindingIssues = exports.nsIssueTag = exports.NO_ISSUE_ID = exports.IssueActionType = void 0;
+exports.findingLabels = exports.processFindingIssues = exports.nsIssueTag = exports.NO_ISSUE_ID = exports.IssueActionType = void 0;
 const utils_1 = __nccwpck_require__(6252);
 var IssueActionType;
 (function (IssueActionType) {
@@ -31925,6 +31940,25 @@ function findExistingIssue(assessment, finding, existing, keyParams) {
     }
     return candidates[0];
 }
+/**
+ * Return the list of labels to apply to a new issue
+ */
+function findingLabels(finding, labelConfig) {
+    var _a, _b;
+    const rawSeverity = finding.severity || "info";
+    const severity = rawSeverity === "info" && ((_b = (_a = finding.check) === null || _a === void 0 ? void 0 : _a.issue) === null || _b === void 0 ? void 0 : _b.warn)
+        ? "warning"
+        : rawSeverity;
+    // pick the labels from 'always' and the finding's severity
+    const labels = (labelConfig.always || []).concat(labelConfig[severity] || []);
+    // add the finding category in if appropriate
+    if (labelConfig.categoryLabels && finding.category) {
+        labels.push(finding.category);
+    }
+    // de-dedup.
+    return [...new Set(labels)];
+}
+exports.findingLabels = findingLabels;
 
 
 /***/ }),
@@ -32524,8 +32558,18 @@ const FILTER_KEYS = [
     "include-warnings",
 ];
 const KEY_KEYS = ["package", "platform", "v1-key"];
-const ISSUE_CONFIG_KEYS = ["filter", "key"];
+const ISSUE_CONFIG_KEYS = ["filter", "key", "labels"];
 const SARIF_CONFIG_KEYS = ["filter", "key"];
+const LABEL_LIST_KEYS = [
+    "always",
+    "info",
+    "warning",
+    "low",
+    "medium",
+    "high",
+    "critical",
+];
+const LABEL_KEYS = [...LABEL_LIST_KEYS, "category-labels"];
 const ALL_CONFIG_KEYS = Array.from(new Set(ISSUE_CONFIG_KEYS.concat(SARIF_CONFIG_KEYS)));
 /** Keys valid at the outer level */
 const OUTER_KEYS = FILTER_KEYS.concat(["filters", "configs", "key"]);
@@ -32709,6 +32753,7 @@ class NsConfig {
         const config = {
             filter: this.mergeFilters(filter_1.DEFAULT_ISSUES_FILTER, rawConfig.filter),
             key: rawConfig.key || Object.assign({}, this.keyParams),
+            labels: this.parseLabels(rawConfig.labels),
         };
         return config;
     }
@@ -32723,6 +32768,47 @@ class NsConfig {
             key: rawConfig.key || Object.assign({}, this.keyParams),
         };
         return config;
+    }
+    parseLabels(labels) {
+        const checkList = (test, listName) => {
+            if (test === undefined) {
+                return [];
+            }
+            else if (typeof test === "string") {
+                return [test];
+            }
+            if (!(0, filter_1.isStringArray)(test)) {
+                throw new TypeError(`${listName} must be a string or a list of strings`);
+            }
+            return test;
+        };
+        if (labels === undefined) {
+            return { always: ["NowSecure"] };
+        }
+        if (typeof labels === "string") {
+            return { always: [labels] };
+        }
+        if ((0, lodash_1.isArray)(labels)) {
+            if (!(0, filter_1.isStringArray)(labels)) {
+                throw new TypeError(`labels must be a string, a list of strings or a Labels object`);
+            }
+            return { always: labels };
+        }
+        checkObject(labels, LABEL_KEYS, "labels");
+        const ret = {};
+        for (const key of LABEL_LIST_KEYS) {
+            if (key in labels) {
+                ret[key] = checkList(labels[key], key);
+            }
+        }
+        if ("category-labels" in labels) {
+            const categoryLabels = labels["category-labels"];
+            if (typeof categoryLabels !== "boolean") {
+                throw new TypeError("category-labels must be a boolean");
+            }
+            ret.categoryLabels = categoryLabels;
+        }
+        return ret;
     }
 }
 exports.NsConfig = NsConfig;
@@ -32791,7 +32877,7 @@ exports.KeyError = KeyError;
  * SPDX-License-Identifier: MIT
  */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.DEFAULT_ISSUES_FILTER = exports.DEFAULT_SARIF_FILTER = exports.parseFilter = exports.findingMatchesFilter = exports.InvalidFilterError = void 0;
+exports.DEFAULT_ISSUES_FILTER = exports.DEFAULT_SARIF_FILTER = exports.parseFilter = exports.isStringArray = exports.findingMatchesFilter = exports.InvalidFilterError = void 0;
 const config_types_1 = __nccwpck_require__(2459);
 const errors_1 = __nccwpck_require__(2579);
 /** Fields are all valid but the overall filter doesn't make sense */
@@ -32838,6 +32924,7 @@ function severityToSarif(input) {
 function isStringArray(test) {
     return (Array.isArray(test) && test.findIndex((x) => typeof x !== "string") == -1);
 }
+exports.isStringArray = isStringArray;
 /**
  * Validate user inputed checkIds
  */

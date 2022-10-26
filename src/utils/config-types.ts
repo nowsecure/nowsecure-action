@@ -32,9 +32,24 @@ export interface KeyParams {
   v1package: string;
 }
 
+export interface LabelLists {
+  always?: string[];
+  info?: string[];
+  warning?: string[];
+  low?: string[];
+  medium?: string[];
+  high?: string[];
+  critical?: string[];
+}
+
+export interface Labels extends LabelLists {
+  categoryLabels?: boolean;
+}
+
 export interface IssuesJobConfig {
   filter: Filter;
   key: KeyParams;
+  labels: Labels;
 }
 
 export interface SarifJobConfig {

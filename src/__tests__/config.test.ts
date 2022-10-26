@@ -107,4 +107,39 @@ describe("config file validation", () => {
     expect(keyConfig2.key.v1platform).toBeNull();
     expect(keyConfig2.key.v1package).toBeNull();
   });
+
+  test("Parses labels config", () => {
+    const labelsFile = path.join(
+      __dirname,
+      "resources",
+      "config",
+      "labels.yml"
+    );
+    const config = new NsConfig(labelsFile, CHECKS);
+
+    const getLabels = (name: string) => config.getConfig(name, "issues").labels;
+
+    expect(getLabels("empty")).toEqual({ always: ["NowSecure"] });
+    expect(getLabels("valid_string")).toEqual({ always: ["one"] });
+    expect(getLabels("valid_list")).toEqual({ always: ["one", "two"] });
+    expect(getLabels("all_keys")).toEqual({
+      always: ["always"],
+      info: ["info"],
+      warning: ["warning"],
+      low: ["low"],
+      medium: ["medium"],
+      high: ["high"],
+      critical: ["critical"],
+      categoryLabels: true,
+    });
+
+    const invalid = (name: string) => {
+      return () => config.getConfig(name, "issues");
+    };
+    expect(invalid("invalid_type")).toThrow(TypeError);
+    expect(invalid("invalid_list")).toThrow(TypeError);
+    expect(invalid("invalid_keys")).toThrow(KeyError);
+    expect(invalid("invalid_category_type")).toThrow(TypeError);
+    expect(invalid("invalid_sev_list")).toThrow(TypeError);
+  });
 });

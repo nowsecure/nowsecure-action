@@ -19,12 +19,15 @@ import {
   IssuesJobConfig,
   SarifJobConfig,
   KeyParams,
+  Labels,
+  LabelLists,
 } from "./config-types";
 import { ValueError, KeyError } from "./errors";
 import {
   parseFilter,
   DEFAULT_ISSUES_FILTER,
   DEFAULT_SARIF_FILTER,
+  isStringArray,
 } from "./filter";
 import { DEFAULT_KEY_PARAMS, parseKeyConfig } from "./key";
 
@@ -38,9 +41,21 @@ const FILTER_KEYS: string[] = [
 
 const KEY_KEYS: string[] = ["package", "platform", "v1-key"];
 
-const ISSUE_CONFIG_KEYS: string[] = ["filter", "key"];
+const ISSUE_CONFIG_KEYS: string[] = ["filter", "key", "labels"];
 
 const SARIF_CONFIG_KEYS: string[] = ["filter", "key"];
+
+const LABEL_LIST_KEYS: (keyof LabelLists)[] = [
+  "always",
+  "info",
+  "warning",
+  "low",
+  "medium",
+  "high",
+  "critical",
+];
+
+const LABEL_KEYS: string[] = [...LABEL_LIST_KEYS, "category-labels"];
 
 interface PartiallyParsedConfig {
   filter: Filter;
@@ -260,6 +275,7 @@ export class NsConfig {
     const config: IssuesJobConfig = {
       filter: this.mergeFilters(DEFAULT_ISSUES_FILTER, rawConfig.filter),
       key: rawConfig.key || { ...this.keyParams },
+      labels: this.parseLabels(rawConfig.labels),
     };
     return config;
   }
@@ -275,6 +291,55 @@ export class NsConfig {
       key: rawConfig.key || { ...this.keyParams },
     };
     return config;
+  }
+
+  private parseLabels(labels?: JSONObject): Labels {
+    const checkList = (test: JSONType, listName: string): string[] => {
+      if (test === undefined) {
+        return [];
+      } else if (typeof test === "string") {
+        return [test];
+      }
+      if (!isStringArray(test)) {
+        throw new TypeError(
+          `${listName} must be a string or a list of strings`
+        );
+      }
+      return test;
+    };
+
+    if (labels === undefined) {
+      return { always: ["NowSecure"] };
+    }
+
+    if (typeof labels === "string") {
+      return { always: [labels] };
+    }
+
+    if (isArray(labels)) {
+      if (!isStringArray(labels)) {
+        throw new TypeError(
+          `labels must be a string, a list of strings or a Labels object`
+        );
+      }
+      return { always: labels };
+    }
+
+    checkObject(labels, LABEL_KEYS, "labels");
+    const ret: Labels = {};
+    for (const key of LABEL_LIST_KEYS) {
+      if (key in labels) {
+        ret[key] = checkList(labels[key], key);
+      }
+    }
+    if ("category-labels" in labels) {
+      const categoryLabels = labels["category-labels"];
+      if (typeof categoryLabels !== "boolean") {
+        throw new TypeError("category-labels must be a boolean");
+      }
+      ret.categoryLabels = categoryLabels;
+    }
+    return ret;
   }
 
   /** Partially checked configs. Full validation is done on read since we don't know the type before we access it */

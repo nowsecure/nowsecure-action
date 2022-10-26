@@ -10,11 +10,8 @@ import { Finding } from "../types/platform";
 import { JSONObject, parseFilter, findingMatchesFilter } from "../utils";
 
 const findings: Finding[] = JSON.parse(
-  fs.readFileSync(
-    path.join(__dirname, "resources", "filter", "findings.json"),
-    "utf8"
-  )
-);
+  fs.readFileSync(path.join(__dirname, "resources", "assessment.json"), "utf8")
+).data.auto.assessments[0].report.findings;
 
 describe("test filters", () => {
   function filterTest(filterDef: JSONObject) {
