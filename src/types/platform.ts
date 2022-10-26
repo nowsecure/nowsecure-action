@@ -92,6 +92,7 @@ export interface Finding {
   summary: string | null;
   affected: boolean;
   severity: Severity;
+  uniqueVulnerabilityId: string;
   context: {
     fields: {
       [key: string]: { title: string };
@@ -102,6 +103,7 @@ export interface Finding {
   };
   check: {
     issue: {
+      warn: boolean;
       title: string;
       description: string | null;
       impactSummary: string | null;

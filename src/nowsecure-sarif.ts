@@ -14,11 +14,17 @@ import type {
 } from "sarif";
 import * as core from "@actions/core";
 import crypto from "crypto";
-import type { Finding, PullReportResponse } from "./types/platform";
+import type { PullReportResponse } from "./types/platform";
 import { ripGrep as rg, RipGrepError } from "ripgrep-js";
-import { getConfig } from "./utils/config-check";
+import {
+  NsConfig,
+  findingMatchesFilter,
+  DEFAULT_SARIF_FILTER,
+  Filter,
+} from "./utils";
 
 const DEFAULT_LAB_URL = "https://lab.nowsecure.com";
+
 const SARIF_SCHEMA_URL =
   "https://raw.githubusercontent.com/schemastore/schemastore/master/src/schemas/json/sarif-2.1.0-rtm.5.json";
 
@@ -45,27 +51,6 @@ function severityToNotification(input: string): Notification.level {
   }
 }
 
-function filterFindings(finding: Finding) {
-  const configPath = core.getInput("config_path");
-  const config = getConfig(configPath);
-
-  if (config.includeChecks && config.includeChecks.includes(finding.key)) {
-    return true;
-  } else if (
-    config.excludeChecks &&
-    config.excludeChecks.includes(finding.key)
-  ) {
-    return false;
-  } else if (
-    config.severityFilter.includes(finding.severity) &&
-    finding.affected
-  ) {
-    return true;
-  } else {
-    return false;
-  }
-}
-
 /**
  * Convert a Platform report to Sarif.
  *
@@ -75,7 +60,8 @@ function filterFindings(finding: Finding) {
  */
 export async function convertToSarif(
   data: PullReportResponse,
-  labUrl: string = DEFAULT_LAB_URL
+  labUrl: string = DEFAULT_LAB_URL,
+  filter: Filter = DEFAULT_SARIF_FILTER
 ): Promise<Log> {
   const assessment = data.data.auto.assessments[0];
   const { taskId, applicationRef } = assessment;
@@ -85,7 +71,9 @@ export async function convertToSarif(
     throw new Error("No report data");
   }
 
-  report.findings = report.findings.filter(filterFindings);
+  report.findings = report.findings.filter((finding) =>
+    findingMatchesFilter(finding, filter)
+  );
 
   const rules: ReportingDescriptor[] = [];
   for (const finding of report.findings) {
