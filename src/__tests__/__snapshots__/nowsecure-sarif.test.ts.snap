@@ -60,6 +60,7 @@ This is an example recommendation.
                 "problem": Object {
                   "severity": "medium",
                 },
+                "security-severity": "5.5",
                 "tags": Array [
                   "CVSS-10.00",
                 ],
@@ -138,6 +139,7 @@ This is an example recommendation.
                 "problem": Object {
                   "severity": "medium",
                 },
+                "security-severity": "5.5",
                 "tags": Array [
                   "CVSS-10.00",
                 ],
@@ -216,6 +218,7 @@ This is an example recommendation.
                 "problem": Object {
                   "severity": "medium",
                 },
+                "security-severity": "5.5",
                 "tags": Array [
                   "CVSS-10.00",
                 ],
@@ -294,6 +297,7 @@ This is an example recommendation.
                 "problem": Object {
                   "severity": "medium",
                 },
+                "security-severity": "5.5",
                 "tags": Array [
                   "CVSS-10.00",
                 ],

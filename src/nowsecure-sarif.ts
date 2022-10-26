@@ -12,7 +12,7 @@ import type {
   Notification,
   PhysicalLocation,
 } from "sarif";
-import type { PullReportResponse } from "./types/platform";
+import type { PullReportResponse, Severity } from "./types/platform";
 import { ripGrep as rg, RipGrepError } from "ripgrep-js";
 import {
   findingMatchesFilter,
@@ -21,6 +21,7 @@ import {
   KeyParams,
   findingKey,
   DEFAULT_KEY_PARAMS,
+  JSONObject,
 } from "./utils";
 
 const DEFAULT_LAB_URL = "https://lab.nowsecure.com";
@@ -41,6 +42,21 @@ function severityToNotification(input: string): Notification.level {
   } else {
     // NOTE: In practice, this should never happen.
     return "none";
+  }
+}
+
+function severityToScore(input: Severity): number {
+  switch (input) {
+    case "critical":
+      return 9.5;
+    case "high":
+      return 8.0;
+    case "medium":
+      return 5.5;
+    case "low":
+      return 2.0;
+    case "info":
+      return 0;
   }
 }
 
@@ -189,6 +205,8 @@ export async function convertToSarif(
         },
         tags,
         precision: "medium",
+        // security-severity is a string (even though it's a number)
+        "security-severity": severityToScore(finding.severity).toString(),
       },
       help: {
         // NOTE: In practice this should not display on the GitHub UI.
