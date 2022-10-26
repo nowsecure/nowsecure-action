@@ -12,28 +12,21 @@ import type {
   Notification,
   PhysicalLocation,
 } from "sarif";
-import * as core from "@actions/core";
-import crypto from "crypto";
 import type { PullReportResponse } from "./types/platform";
 import { ripGrep as rg, RipGrepError } from "ripgrep-js";
 import {
-  NsConfig,
   findingMatchesFilter,
   DEFAULT_SARIF_FILTER,
   Filter,
+  KeyParams,
+  findingKey,
+  DEFAULT_KEY_PARAMS,
 } from "./utils";
 
 const DEFAULT_LAB_URL = "https://lab.nowsecure.com";
 
 const SARIF_SCHEMA_URL =
   "https://raw.githubusercontent.com/schemastore/schemastore/master/src/schemas/json/sarif-2.1.0-rtm.5.json";
-
-/**
- * Take the SHA256 of an input string and output in hex.
- */
-function sha256(input: string): string {
-  return crypto.createHash("sha256").update(input).digest("hex");
-}
 
 /**
  * Convert NowSecure severity to a SARIF notification level.
@@ -60,8 +53,9 @@ function severityToNotification(input: string): Notification.level {
  */
 export async function convertToSarif(
   data: PullReportResponse,
-  labUrl: string = DEFAULT_LAB_URL,
-  filter: Filter = DEFAULT_SARIF_FILTER
+  keyParams: KeyParams = DEFAULT_KEY_PARAMS,
+  filter: Filter = DEFAULT_SARIF_FILTER,
+  labUrl: string = DEFAULT_LAB_URL
 ): Promise<Log> {
   const assessment = data.data.auto.assessments[0];
   const { taskId, applicationRef } = assessment;
@@ -180,7 +174,7 @@ export async function convertToSarif(
     }
 
     rules.push({
-      id: sha256(finding.key),
+      id: findingKey(assessment, finding, keyParams),
       name: finding.title,
       helpUri: `${labUrl}/app/${applicationRef}/assessment/${taskId}#finding-${finding.key}`,
       shortDescription: {
@@ -220,7 +214,7 @@ export async function convertToSarif(
     // result that does not show detailed line number information (refer to the
     // evidence table instead).
     const simpleResult = {
-      ruleId: sha256(finding.key),
+      ruleId: findingKey(assessment, finding, keyParams),
       message: {
         // Markdown doesn't work here. We render our information in the "help"
         // field in the reporting descriptor.
@@ -263,7 +257,7 @@ export async function convertToSarif(
 
             for (const physicalLocation of locations) {
               localResults.push({
-                ruleId: sha256(finding.key),
+                ruleId: findingKey(assessment, finding, keyParams),
                 message: {
                   text: issueDescription,
                 },

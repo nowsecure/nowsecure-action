@@ -5,6 +5,11 @@ include-checks:
   - check_2
 minimum-severity: medium
 
+key:
+  platform: true
+  package: true
+  v1-key: android com.example.app
+
 filters:
   valid-filter:
     include-warnings: false
@@ -26,3 +31,12 @@ configs:
       minimum-severity: low
   reference-filter:
     filter: valid-filter
+  key-params-1:
+    key:
+      platform: true
+      package: false
+      v1-key: ios com.example.app
+  key-params-2:
+    key:
+      platform: false
+      package: true

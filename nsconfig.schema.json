@@ -11,7 +11,8 @@
     "configs": {
       "type": "object",
       "additionalProperties": { "$ref": "#/$defs/config" }
-    }
+    },
+    "key": { "$ref": "#/$defs/keyparams" }
   },
   "unevaluatedProperties": false,
   "$defs": {
@@ -34,7 +35,8 @@
     "config": {
       "type": "object",
       "properties": {
-        "filter": { "$ref": "#/$defs/filterorstring" }
+        "filter": { "$ref": "#/$defs/filterorstring" },
+        "key": { "$ref": "#/$defs/keyparams" }
       },
       "unevaluatedProperties": false
     },
@@ -45,6 +47,15 @@
     "checklist": {
       "type": "array",
       "items": { "type": "string" }
+    },
+    "keyparams": {
+      "type": "object",
+      "properties": {
+        "package": { "type": "boolean" },
+        "platform": { "type": "boolean" },
+        "v1-key": { "type": "string" }
+      },
+      "additionalProperties": false
     }
   }
 }

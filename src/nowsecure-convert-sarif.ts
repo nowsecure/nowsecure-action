@@ -7,8 +7,12 @@
 import * as core from "@actions/core";
 import { NowSecure } from "./nowsecure-client";
 import * as github from "@actions/github";
-import { outputToDependencies, outputToSarif } from "./utils/action-utils";
-import { NsConfig, getPlatformToken } from "./utils";
+import {
+  outputToDependencies,
+  outputToSarif,
+  platformConfig,
+} from "./utils/action-utils";
+import { NsConfig } from "./utils";
 
 async function run() {
   const reportId = core.getInput("report_id");
@@ -17,9 +21,7 @@ async function run() {
     const config = new NsConfig(core.getInput("config_path"));
     const jobConfig = config.getConfig(core.getInput("config"), "sarif");
 
-    const apiUrl = core.getInput("api_url");
-    const labApiUrl = core.getInput("lab_api_url");
-    const labUrl = core.getInput("lab_url");
+    const platform = platformConfig();
 
     let pollInterval = parseInt(core.getInput("poll_interval_ms"), 10);
     if (isNaN(pollInterval)) {
@@ -30,7 +32,11 @@ async function run() {
     const enableDependencies = core.getBooleanInput("enable_dependencies");
     const githubToken = core.getInput("github_token");
     const githubCorrelator = core.getInput("github_correlator");
-    const ns = new NowSecure(getPlatformToken(), apiUrl, labApiUrl);
+    const ns = new NowSecure(
+      platform.token,
+      platform.apiUrl,
+      platform.labApiUrl
+    );
 
     const report = await ns.pollForReport(reportId, pollInterval);
 
@@ -44,7 +50,12 @@ async function run() {
     }
 
     if (enableSarif) {
-      await outputToSarif(report, labUrl, jobConfig.filter);
+      await outputToSarif(
+        report,
+        jobConfig.key,
+        jobConfig.filter,
+        platform.labUrl
+      );
     }
   } catch (e) {
     console.error(e);

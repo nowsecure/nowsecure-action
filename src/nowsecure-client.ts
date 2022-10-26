@@ -45,6 +45,7 @@ const platformGql = (reportId: string): string => `{
   auto {
     assessments(scope:"*" refs:["${reportId.replace(/[^0-9a-z-]/gi, "")}"]) {
       deputy: _raw(path: "yaap.complete.results[0].deputy.deputy.data[0].results")
+      platformType
       packageKey
       taskId
       applicationRef
