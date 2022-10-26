@@ -128,6 +128,7 @@ export async function submitSnapshotData(
     snapshotUrl(owner, repo),
     JSON.stringify(data),
     {
+      Accept: "application/vnd.github+json",
       Authorization: `token ${token}`,
     }
   );

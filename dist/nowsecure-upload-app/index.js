@@ -22452,6 +22452,7 @@ function submitSnapshotData(data, { repo: { owner, repo } }, token) {
     return __awaiter(this, void 0, void 0, function* () {
         const httpClient = new client.HttpClient(nowsecure_client_1.USER_AGENT);
         const r = yield httpClient.post(snapshotUrl(owner, repo), JSON.stringify(data), {
+            Accept: "application/vnd.github+json",
             Authorization: `token ${token}`,
         });
         if (r.message.statusCode !== 201) {
