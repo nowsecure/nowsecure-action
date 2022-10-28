@@ -23,6 +23,8 @@ import {
 } from "./nowsecure-issues";
 import * as github from "@actions/github";
 import GitHub from "./types/github";
+import { renderFinding } from "./issue-templates";
+import { FindingRenderOptions } from "./issue-templates/render_finding";
 
 /** Rate limit will not permit that many calls. Wait until the reset data */
 class InsufficientRateLimitAvailableError extends CustomError {
@@ -66,6 +68,7 @@ export async function run() {
   const repo = getRepo();
   const ns = getNowSecure();
 
+  const baseUrl = core.getInput("lab_url");
   const reportId = core.getInput("report_id");
   console.log(`Fetching NowSecure report with ID: ${reportId}`);
 
@@ -86,6 +89,29 @@ export async function run() {
   console.log(
     `Total number of findings in report ${reportId}: ${report.findings.length}`
   );
+
+  const createIssue = (finding: Finding) => {
+    const linkBlock = `
+
+---
+
+\`NowSecure finding identifier: Do not delete.
+${nsIssueTag(assessment, finding, jobConfig.key)}
+\``;
+
+    const options: FindingRenderOptions = {
+      maxRows: jobConfig.maxRows,
+    };
+
+    const { title, body } = renderFinding(
+      assessment,
+      finding,
+      linkBlock,
+      baseUrl,
+      options
+    );
+    return repo.createIssue({ title, body });
+  };
 
   // pull all the issues we have to determine dupes and to re-open issues.
   const existingIssues = await repo.existingIssues();
@@ -117,11 +143,7 @@ export async function run() {
     const finding = action.finding;
     switch (action.action) {
       case IssueActionType.CREATE:
-        await repo.createIssue({
-          title: finding.title,
-          body: buildBody(assessment, finding, jobConfig.key),
-          labels: findingLabels(finding, jobConfig.labels),
-        });
+        await createIssue(finding);
         break;
 
       case IssueActionType.REOPEN:
@@ -129,29 +151,6 @@ export async function run() {
         break;
     }
   }
-}
-
-export function buildBody(
-  assessment: Assessment,
-  finding: Finding,
-  keyParams: KeyParams
-) {
-  let result;
-  let severity = finding.severity;
-  let issue = finding.check.issue;
-  result = nsIssueTag(assessment, finding, keyParams);
-  result += "<h3>Severity</h3>";
-  result += severity ? severity : "N/A";
-  result += "<h3>Description:</h3>";
-  result += issue && issue.description ? issue.description : "N/A";
-  result += "<h3>Impact Summary:</h3>";
-  result += issue && issue.impactSummary ? issue.impactSummary : "N/A";
-  result += "<h3>Steps to reproduce:</h3>";
-  result += issue && issue.stepsToReproduce ? issue.stepsToReproduce : "N/A";
-  result += "<h3>Recommendations:</h3></p>";
-  result += issue && issue.recommendation ? issue.recommendation : "N/A";
-
-  return result;
 }
 
 run();

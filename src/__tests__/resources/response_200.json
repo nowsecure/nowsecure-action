@@ -13,11 +13,16 @@
               {
                 "kind": "static",
                 "key": "example_check",
+                "checkId": "example_check",
+                "category": "network",
                 "title": "This Is An Example Check",
                 "summary": "This check is an example check.",
                 "affected": true,
                 "severity": "medium",
+                "impactType": "medium",
                 "context": null,
+                "cvss": 10,
+                "cvssVector": "CVSS:3.0/AV:A/AC:L/PR:N/UI:N/S:U/C:L/I:H/A:N",
                 "check": {
                   "issue": {
                     "title": "Example",
@@ -27,6 +32,7 @@
                     "recommendation": "This is an example recommendation.",
                     "category": null,
                     "cvss": 10,
+                    "cvssVector": "CVSS:3.0/AV:A/AC:L/PR:N/UI:N/S:U/C:L/I:H/A:N",
                     "codeSamples": [],
                     "guidanceLinks": []
                   }

@@ -50,6 +50,7 @@ export interface IssuesJobConfig {
   filter: Filter;
   key: KeyParams;
   labels: Labels;
+  maxRows: number;
 }
 
 export interface SarifJobConfig {

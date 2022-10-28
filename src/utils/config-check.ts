@@ -276,6 +276,7 @@ export class NsConfig {
       filter: this.mergeFilters(DEFAULT_ISSUES_FILTER, rawConfig.filter),
       key: rawConfig.key || { ...this.keyParams },
       labels: this.parseLabels(rawConfig.labels),
+      maxRows: this.parseMaxRows(rawConfig.maxRows),
     };
     return config;
   }
@@ -340,6 +341,22 @@ export class NsConfig {
       ret.categoryLabels = categoryLabels;
     }
     return ret;
+  }
+
+  private parseMaxRows(rows: JSONType) {
+    if (rows === undefined) {
+      return 20;
+    }
+    if (typeof rows !== "number") {
+      throw new TypeError("max-rows must be a number");
+    }
+    if (rows < 0) {
+      throw new ValueError("max-rows must be >= 0");
+    }
+    if (Math.floor(rows) != rows) {
+      throw new ValueError("max-rows must be an integer");
+    }
+    return rows;
   }
 
   /** Partially checked configs. Full validation is done on read since we don't know the type before we access it */

@@ -35,6 +35,7 @@
     "@actions/github": "5.0.1",
     "@actions/http-client": "1.0.11",
     "@octokit/action": "4.0.10",
+    "liquidjs": "9.42.0",
     "lodash": "4.17.21",
     "octokit": "2.0.4",
     "ripgrep-js": "3.0.0",

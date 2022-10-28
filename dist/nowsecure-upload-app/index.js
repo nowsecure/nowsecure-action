@@ -21894,6 +21894,15 @@ const platformGql = (reportId) => `{
             rows
           }
           check {
+            context {
+              view
+              title
+              fields {
+                key
+                title
+                format
+              }
+            }
             issue {
               title
               warn
@@ -22890,6 +22899,7 @@ class NsConfig {
             filter: this.mergeFilters(filter_1.DEFAULT_ISSUES_FILTER, rawConfig.filter),
             key: rawConfig.key || Object.assign({}, this.keyParams),
             labels: this.parseLabels(rawConfig.labels),
+            maxRows: this.parseMaxRows(rawConfig.maxRows),
         };
         return config;
     }
@@ -22945,6 +22955,21 @@ class NsConfig {
             ret.categoryLabels = categoryLabels;
         }
         return ret;
+    }
+    parseMaxRows(rows) {
+        if (rows === undefined) {
+            return 20;
+        }
+        if (typeof rows !== "number") {
+            throw new TypeError("max-rows must be a number");
+        }
+        if (rows < 0) {
+            throw new errors_1.ValueError("max-rows must be >= 0");
+        }
+        if (Math.floor(rows) != rows) {
+            throw new errors_1.ValueError("max-rows must be an integer");
+        }
+        return rows;
     }
 }
 exports.NsConfig = NsConfig;
