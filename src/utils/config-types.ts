@@ -18,6 +18,9 @@ export type JSONType =
 export type JSONObject = { [index: string]: JSONType };
 export type JSONArray = JSONType[];
 
+export type SummaryLevel = "none" | "short" | "long";
+export const summaryLevels = ["none", "short", "long"];
+
 export interface Filter {
   includeChecks?: string[];
   excludeChecks?: string[];
@@ -48,6 +51,7 @@ export interface Labels extends LabelLists {
 
 export interface IssuesJobConfig {
   filter: Filter;
+  summary: SummaryLevel;
   key: KeyParams;
   labels: Labels;
   maxRows: number;
@@ -55,6 +59,7 @@ export interface IssuesJobConfig {
 
 export interface SarifJobConfig {
   filter: Filter;
+  summary: SummaryLevel;
   key: KeyParams;
 }
 

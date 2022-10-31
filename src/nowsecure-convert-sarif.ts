@@ -13,6 +13,7 @@ import {
   platformConfig,
 } from "./utils/action-utils";
 import { NsConfig } from "./utils";
+import { githubJobSummary, githubWriteJobSummary } from "./nowsecure-summary";
 
 async function run() {
   const reportId = core.getInput("report_id");
@@ -56,6 +57,16 @@ async function run() {
         jobConfig.filter,
         platform.labUrl
       );
+    }
+
+    if (jobConfig.summary !== "none") {
+      githubJobSummary(
+        jobConfig.summary,
+        platform.labUrl,
+        report.data.auto.assessments[0],
+        null
+      );
+      await githubWriteJobSummary();
     }
   } catch (e) {
     console.error(e);

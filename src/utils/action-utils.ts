@@ -12,7 +12,11 @@ import {
   submitSnapshotData,
   ActionContext,
 } from "../nowsecure-snapshot";
-import type { PullReportResponse } from "../types/platform";
+import type {
+  Assessment,
+  Finding,
+  PullReportResponse,
+} from "../types/platform";
 import { Filter, KeyParams } from "./config-types";
 
 const { writeFile } = promises;
@@ -37,6 +41,17 @@ export interface PlatformConfig {
   /** UI address */
   labUrl: string;
 }
+
+export const assessmentLink = (
+  labUrl: string,
+  assessment: Assessment,
+  finding?: Finding
+) => {
+  const assessmentUrl = `${labUrl}/app/${assessment.applicationRef}/assessment/${assessment.taskId}`;
+  return finding?.checkId
+    ? assessmentUrl + `#finding-${finding.checkId}`
+    : assessmentUrl;
+};
 
 export function platformConfig(): PlatformConfig {
   return {

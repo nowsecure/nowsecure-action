@@ -140,6 +140,7 @@ const file_command_1 = __nccwpck_require__(717);
 const utils_1 = __nccwpck_require__(5278);
 const os = __importStar(__nccwpck_require__(2037));
 const path = __importStar(__nccwpck_require__(1017));
+const uuid_1 = __nccwpck_require__(5840);
 const oidc_utils_1 = __nccwpck_require__(8041);
 /**
  * The code to exit an action
@@ -169,9 +170,20 @@ function exportVariable(name, val) {
     process.env[name] = convertedVal;
     const filePath = process.env['GITHUB_ENV'] || '';
     if (filePath) {
-        return file_command_1.issueFileCommand('ENV', file_command_1.prepareKeyValueMessage(name, val));
+        const delimiter = `ghadelimiter_${uuid_1.v4()}`;
+        // These should realistically never happen, but just in case someone finds a way to exploit uuid generation let's not allow keys or values that contain the delimiter.
+        if (name.includes(delimiter)) {
+            throw new Error(`Unexpected input: name should not contain the delimiter "${delimiter}"`);
+        }
+        if (convertedVal.includes(delimiter)) {
+            throw new Error(`Unexpected input: value should not contain the delimiter "${delimiter}"`);
+        }
+        const commandValue = `${name}<<${delimiter}${os.EOL}${convertedVal}${os.EOL}${delimiter}`;
+        file_command_1.issueCommand('ENV', commandValue);
     }
-    command_1.issueCommand('set-env', { name }, convertedVal);
+    else {
+        command_1.issueCommand('set-env', { name }, convertedVal);
+    }
 }
 exports.exportVariable = exportVariable;
 /**
@@ -189,7 +201,7 @@ exports.setSecret = setSecret;
 function addPath(inputPath) {
     const filePath = process.env['GITHUB_PATH'] || '';
     if (filePath) {
-        file_command_1.issueFileCommand('PATH', inputPath);
+        file_command_1.issueCommand('PATH', inputPath);
     }
     else {
         command_1.issueCommand('add-path', {}, inputPath);
@@ -229,10 +241,7 @@ function getMultilineInput(name, options) {
     const inputs = getInput(name, options)
         .split('\n')
         .filter(x => x !== '');
-    if (options && options.trimWhitespace === false) {
-        return inputs;
-    }
-    return inputs.map(input => input.trim());
+    return inputs;
 }
 exports.getMultilineInput = getMultilineInput;
 /**
@@ -265,12 +274,8 @@ exports.getBooleanInput = getBooleanInput;
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function setOutput(name, value) {
-    const filePath = process.env['GITHUB_OUTPUT'] || '';
-    if (filePath) {
-        return file_command_1.issueFileCommand('OUTPUT', file_command_1.prepareKeyValueMessage(name, value));
-    }
     process.stdout.write(os.EOL);
-    command_1.issueCommand('set-output', { name }, utils_1.toCommandValue(value));
+    command_1.issueCommand('set-output', { name }, value);
 }
 exports.setOutput = setOutput;
 /**
@@ -399,11 +404,7 @@ exports.group = group;
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function saveState(name, value) {
-    const filePath = process.env['GITHUB_STATE'] || '';
-    if (filePath) {
-        return file_command_1.issueFileCommand('STATE', file_command_1.prepareKeyValueMessage(name, value));
-    }
-    command_1.issueCommand('save-state', { name }, utils_1.toCommandValue(value));
+    command_1.issueCommand('save-state', { name }, value);
 }
 exports.saveState = saveState;
 /**
@@ -469,14 +470,13 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.prepareKeyValueMessage = exports.issueFileCommand = void 0;
+exports.issueCommand = void 0;
 // We use any as a valid input type
 /* eslint-disable @typescript-eslint/no-explicit-any */
 const fs = __importStar(__nccwpck_require__(7147));
 const os = __importStar(__nccwpck_require__(2037));
-const uuid_1 = __nccwpck_require__(5840);
 const utils_1 = __nccwpck_require__(5278);
-function issueFileCommand(command, message) {
+function issueCommand(command, message) {
     const filePath = process.env[`GITHUB_${command}`];
     if (!filePath) {
         throw new Error(`Unable to find environment variable for file command ${command}`);
@@ -488,22 +488,7 @@ function issueFileCommand(command, message) {
         encoding: 'utf8'
     });
 }
-exports.issueFileCommand = issueFileCommand;
-function prepareKeyValueMessage(key, value) {
-    const delimiter = `ghadelimiter_${uuid_1.v4()}`;
-    const convertedValue = utils_1.toCommandValue(value);
-    // These should realistically never happen, but just in case someone finds a
-    // way to exploit uuid generation let's not allow keys or values that contain
-    // the delimiter.
-    if (key.includes(delimiter)) {
-        throw new Error(`Unexpected input: name should not contain the delimiter "${delimiter}"`);
-    }
-    if (convertedValue.includes(delimiter)) {
-        throw new Error(`Unexpected input: value should not contain the delimiter "${delimiter}"`);
-    }
-    return `${key}<<${delimiter}${os.EOL}${convertedValue}${os.EOL}${delimiter}`;
-}
-exports.prepareKeyValueMessage = prepareKeyValueMessage;
+exports.issueCommand = issueCommand;
 //# sourceMappingURL=file-command.js.map
 
 /***/ }),
@@ -28907,6 +28892,7 @@ const nowsecure_client_1 = __nccwpck_require__(4619);
 const github = __importStar(__nccwpck_require__(5438));
 const action_utils_1 = __nccwpck_require__(5213);
 const utils_1 = __nccwpck_require__(6252);
+const nowsecure_summary_1 = __nccwpck_require__(6359);
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         const reportId = core.getInput("report_id");
@@ -28931,6 +28917,10 @@ function run() {
             if (enableSarif) {
                 yield (0, action_utils_1.outputToSarif)(report, jobConfig.key, jobConfig.filter, platform.labUrl);
             }
+            if (jobConfig.summary !== "none") {
+                (0, nowsecure_summary_1.githubJobSummary)(jobConfig.summary, platform.labUrl, report.data.auto.assessments[0], null);
+                yield (0, nowsecure_summary_1.githubWriteJobSummary)();
+            }
         }
         catch (e) {
             console.error(e);
@@ -28939,6 +28929,132 @@ function run() {
     });
 }
 run();
+
+
+/***/ }),
+
+/***/ 783:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.findingLabels = exports.processFindingIssues = exports.nsIssueTag = exports.IssueActionType = void 0;
+const utils_1 = __nccwpck_require__(6252);
+var IssueActionType;
+(function (IssueActionType) {
+    IssueActionType[IssueActionType["NO_ACTION"] = 0] = "NO_ACTION";
+    IssueActionType[IssueActionType["CREATE"] = 1] = "CREATE";
+    IssueActionType[IssueActionType["REOPEN"] = 2] = "REOPEN";
+})(IssueActionType = exports.IssueActionType || (exports.IssueActionType = {}));
+/** Generate unique tag for finding, used to re-identify existing issues we created */
+function nsIssueTag(assessment, finding, keyParams) {
+    return "nowsecure_unique_id=" + (0, utils_1.findingKey)(assessment, finding, keyParams);
+}
+exports.nsIssueTag = nsIssueTag;
+const log = process.env.NODE_ENV !== "test"
+    ? console.log
+    : (message, ...optional) => { };
+/**
+ * Determines what to do for each finding in a list.
+ *
+ * @param findings List of findings to process
+ * @param existingIssues List of existing issues returned from GitHub
+ * @param filter Filter to apply to the findings list
+ * @returns List of IssueActions for each finding that requires processing
+ */
+function processFindingIssues(assessment, findings, existingIssues, filter, keyParams) {
+    const actionList = [];
+    // Note:  if there are pull requests open OR closed, they will have been returned
+    // in the result set of the /issues API call.
+    const hasExisting = existingIssues && existingIssues.length;
+    log(hasExisting
+        ? `${existingIssues.length} issues found`
+        : "No existing issues found");
+    for (var finding of findings) {
+        if ((0, utils_1.findingMatchesFilter)(finding, filter)) {
+            let issueToUpdate = hasExisting
+                ? findExistingIssue(assessment, finding, existingIssues, keyParams)
+                : null;
+            if (!issueToUpdate) {
+                log(`Finding ${finding.key}: Creating a new issue, ${finding.title} / ${finding.severity}`);
+                actionList.push({
+                    finding,
+                    existingIssue: null,
+                    action: IssueActionType.CREATE,
+                });
+            }
+            else if (issueToUpdate.state === "open") {
+                log(`Finding ${finding.key}: Found open issue ${issueToUpdate.number}, no action required`);
+                actionList.push({
+                    finding,
+                    existingIssue: issueToUpdate,
+                    action: IssueActionType.NO_ACTION,
+                });
+            }
+            else if (issueToUpdate.state === "closed") {
+                log(`Finding ${finding.key}: Re-open issue ${issueToUpdate.number}`);
+                actionList.push({
+                    finding,
+                    existingIssue: issueToUpdate,
+                    action: IssueActionType.REOPEN,
+                });
+            }
+            else {
+                log(`Issue ${issueToUpdate.number} has unexpected state ${issueToUpdate.state}`);
+                actionList.push({
+                    finding,
+                    existingIssue: issueToUpdate,
+                    action: IssueActionType.NO_ACTION,
+                });
+            }
+        }
+    }
+    return actionList;
+}
+exports.processFindingIssues = processFindingIssues;
+/**
+ * Scans the list of existing findings to find a previously created finding
+ * @param finding: Finding from the NS report to locate
+ * @param existing: List of GitHub issues for the target repository
+ * @returns Matching GitHub issue, or null
+ */
+function findExistingIssue(assessment, finding, existing, keyParams) {
+    const tag = nsIssueTag(assessment, finding, keyParams);
+    const issueMatchesFinding = (issue) => issue.body && issue.body.indexOf(tag) >= 0;
+    // list of matching issues in descending id order (i.e. newest first)
+    const candidates = existing
+        .filter(issueMatchesFinding)
+        .sort((a, b) => b.number - a.number);
+    // Return the newest open issue; if none, return the newest (closed) issue
+    if (candidates.length == 0) {
+        return null;
+    }
+    const open = candidates.find((x) => x.state === "open");
+    if (open) {
+        return open;
+    }
+    return candidates[0];
+}
+/**
+ * Return the list of labels to apply to a new issue
+ */
+function findingLabels(finding, labelConfig) {
+    var _a, _b;
+    const rawSeverity = finding.severity || "info";
+    const severity = rawSeverity === "info" && ((_b = (_a = finding.check) === null || _a === void 0 ? void 0 : _a.issue) === null || _b === void 0 ? void 0 : _b.warn)
+        ? "warning"
+        : rawSeverity;
+    // pick the labels from 'always' and the finding's severity
+    const labels = (labelConfig.always || []).concat(labelConfig[severity] || []);
+    // add the finding category in if appropriate
+    if (labelConfig.categoryLabels && finding.category) {
+        labels.push(finding.category);
+    }
+    // de-dedup.
+    return [...new Set(labels)];
+}
+exports.findingLabels = findingLabels;
 
 
 /***/ }),
@@ -29404,6 +29520,187 @@ exports.submitSnapshotData = submitSnapshotData;
 
 /***/ }),
 
+/***/ 6359:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getFindingsTable = exports.getDependenciesTable = exports.githubWriteJobSummary = exports.githubJobSummaryShort = exports.githubJobSummaryLong = exports.githubJobSummary = void 0;
+const core = __importStar(__nccwpck_require__(2186));
+const utils_1 = __nccwpck_require__(6252);
+const nowsecure_issues_1 = __nccwpck_require__(783);
+function githubJobSummary(which, labUrl, assessment, findingToIssueMap) {
+    switch (which) {
+        case "short":
+            return githubJobSummaryShort(labUrl, assessment, findingToIssueMap);
+        case "long":
+            return githubJobSummaryLong(labUrl, assessment, findingToIssueMap);
+    }
+}
+exports.githubJobSummary = githubJobSummary;
+function githubJobSummaryLong(labUrl, assessment, findingToIssueMap) {
+    const findingsTable = getFindingsTable(labUrl, assessment, findingToIssueMap);
+    const dependenciesTable = getDependenciesTable(assessment);
+    return core.summary
+        .addImage("https://www.nowsecure.com/wp-content/uploads/2022/03/Logo-Nowsecure.png", "NowSecure Logo")
+        .addHeading("Security Test Results")
+        .addTable(findingsTable)
+        .addSeparator()
+        .addRaw(`<details${dependenciesTable.length <= 11 ? " open" : ""}><summary>Dependencies (click to expand)</summary>`, true)
+        .addTable(dependenciesTable)
+        .addRaw("</details>", true)
+        .addLink("View NowSecure Report", (0, utils_1.assessmentLink)(labUrl, assessment));
+}
+exports.githubJobSummaryLong = githubJobSummaryLong;
+function riskLine(labUrl, assessment, finding, findingToIssueMap) {
+    var _a;
+    const { key, title } = finding;
+    const findingUrl = (0, utils_1.assessmentLink)(labUrl, assessment, finding);
+    let line = `- ${key} - <a href="${findingUrl}">${title}</a>`;
+    const issue = (_a = findingToIssueMap === null || findingToIssueMap === void 0 ? void 0 : findingToIssueMap[key]) === null || _a === void 0 ? void 0 : _a.existingIssue;
+    if (issue) {
+        line += ` - Issue <a href="${issue.html_url}">${issue.number.toString()}</a>`;
+    }
+    return line;
+}
+function githubJobSummaryShort(labUrl, assessment, findingToIssueMap) {
+    const grouping = { pass: [], fail: [] };
+    const findingsGroupedBy = assessment.report.findings.reduce((acc, finding) => {
+        var _a;
+        const { check, affected } = finding;
+        if (affected && ((_a = check.issue) === null || _a === void 0 ? void 0 : _a.cvss) > 0) {
+            acc.fail.push(finding);
+        }
+        else {
+            acc.pass.push(finding);
+        }
+        return acc;
+    }, grouping);
+    const testResultHeader = [
+        { data: "Test Result", header: true },
+        { data: "Count", header: true },
+    ];
+    const results = [
+        [":white_check_mark: Pass", findingsGroupedBy.pass.length.toString()],
+        [":red_circle: Fail", findingsGroupedBy.fail.length.toString()],
+        [":bricks: Dependencies", assessment.deputy.components.length.toString()],
+    ];
+    const formatDetail = (findings) => findings
+        .map((finding) => riskLine(labUrl, assessment, finding, findingToIssueMap))
+        .join("<br>");
+    return core.summary
+        .addImage("https://www.nowsecure.com/wp-content/uploads/2022/03/Logo-Nowsecure.png", "NowSecure Logo")
+        .addHeading("Security Test Results")
+        .addTable([testResultHeader, ...results])
+        .addDetails("Risks", formatDetail(findingsGroupedBy.fail))
+        .addSeparator()
+        .addLink("View NowSecure Report", (0, utils_1.assessmentLink)(labUrl, assessment));
+}
+exports.githubJobSummaryShort = githubJobSummaryShort;
+function githubWriteJobSummary() {
+    return __awaiter(this, void 0, void 0, function* () {
+        if (process.env.GITHUB_STEP_SUMMARY) {
+            yield core.summary.write();
+        }
+    });
+}
+exports.githubWriteJobSummary = githubWriteJobSummary;
+function getDependenciesTable(assessment) {
+    const header = [
+        { data: "Dependency", header: true },
+        { data: "Version", header: true },
+        { data: "File", header: true },
+    ];
+    const deps = assessment.deputy.components
+        .filter(({ version }) => version)
+        .map(({ source: file, name, version }) => {
+        return [name !== null && name !== void 0 ? name : "name", version !== null && version !== void 0 ? version : "version", file !== null && file !== void 0 ? file : "file"];
+    });
+    return [header, ...deps];
+}
+exports.getDependenciesTable = getDependenciesTable;
+function issueStatus(finding, findingToIssueMap) {
+    const action = findingToIssueMap[finding.key];
+    if (!action) {
+        return "";
+    }
+    const issue = action.existingIssue;
+    let text;
+    switch (action.action) {
+        case nowsecure_issues_1.IssueActionType.CREATE:
+            text = "Created ";
+            break;
+        case nowsecure_issues_1.IssueActionType.REOPEN:
+            text = "Reopened ";
+            break;
+        case nowsecure_issues_1.IssueActionType.NO_ACTION:
+            text = "";
+            break;
+    }
+    return `${text}<a href="${issue.html_url}">${issue.number.toString()}</a>`;
+}
+function getFindingsTable(labUrl, assessment, findingToIssueMap) {
+    const header = [
+        { data: "Checks", header: true },
+        { data: "Pass", header: true },
+        { data: "Category", header: true },
+        { data: "Summary", header: true },
+    ];
+    if (findingToIssueMap) {
+        header.push("Issue");
+    }
+    const checks = assessment.report.findings
+        .filter(({ affected, check }) => { var _a; return affected && ((_a = check.issue) === null || _a === void 0 ? void 0 : _a.cvss) > 0; })
+        .map((finding) => {
+        var _a, _b, _c, _d, _e, _f;
+        const { check, key, affected, title: findingTitle, category: findingCategory, } = finding;
+        const mark = affected ? ":red_circle:" : ":white_check_mark:";
+        const category = (_c = (_b = (_a = check.issue) === null || _a === void 0 ? void 0 : _a.category) !== null && _b !== void 0 ? _b : findingCategory) !== null && _c !== void 0 ? _c : "misc";
+        const titleText = (_f = (_e = (_d = check.issue) === null || _d === void 0 ? void 0 : _d.title) !== null && _e !== void 0 ? _e : findingTitle) !== null && _f !== void 0 ? _f : "See report for details";
+        const findingLink = (0, utils_1.assessmentLink)(labUrl, assessment, finding);
+        const title = `<a href="${findingLink}">${titleText}</a>`;
+        const row = [key, mark, category, title];
+        if (findingToIssueMap) {
+            row.push(issueStatus(finding, findingToIssueMap));
+        }
+        return row;
+    });
+    return [header, ...checks];
+}
+exports.getFindingsTable = getFindingsTable;
+
+
+/***/ }),
+
 /***/ 1328:
 /***/ ((__unused_webpack_module, exports) => {
 
@@ -29456,7 +29753,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.outputToSarif = exports.outputToDependencies = exports.platformConfig = exports.sleep = void 0;
+exports.outputToSarif = exports.outputToDependencies = exports.platformConfig = exports.assessmentLink = exports.sleep = void 0;
 const fs_1 = __nccwpck_require__(7147);
 const core = __importStar(__nccwpck_require__(2186));
 const nowsecure_sarif_1 = __nccwpck_require__(9475);
@@ -29469,6 +29766,13 @@ function sleep(milliseconds) {
     });
 }
 exports.sleep = sleep;
+const assessmentLink = (labUrl, assessment, finding) => {
+    const assessmentUrl = `${labUrl}/app/${assessment.applicationRef}/assessment/${assessment.taskId}`;
+    return (finding === null || finding === void 0 ? void 0 : finding.checkId)
+        ? assessmentUrl + `#finding-${finding.checkId}`
+        : assessmentUrl;
+};
+exports.assessmentLink = assessmentLink;
 function platformConfig() {
     return {
         token: core.getInput("platform_token"),
@@ -29527,6 +29831,7 @@ const fs_1 = __importDefault(__nccwpck_require__(7147));
 const path_1 = __importDefault(__nccwpck_require__(1017));
 const yaml_1 = __importDefault(__nccwpck_require__(4603));
 const lodash_1 = __nccwpck_require__(250);
+const config_types_1 = __nccwpck_require__(2459);
 const errors_1 = __nccwpck_require__(2579);
 const filter_1 = __nccwpck_require__(2284);
 const key_1 = __nccwpck_require__(3225);
@@ -29538,8 +29843,8 @@ const FILTER_KEYS = [
     "include-warnings",
 ];
 const KEY_KEYS = ["package", "platform", "v1-key"];
-const ISSUE_CONFIG_KEYS = ["filter", "key", "labels"];
-const SARIF_CONFIG_KEYS = ["filter", "key"];
+const ISSUE_CONFIG_KEYS = ["filter", "key", "labels", "summary"];
+const SARIF_CONFIG_KEYS = ["filter", "key", "summary"];
 const LABEL_LIST_KEYS = [
     "always",
     "info",
@@ -29552,7 +29857,7 @@ const LABEL_LIST_KEYS = [
 const LABEL_KEYS = [...LABEL_LIST_KEYS, "category-labels"];
 const ALL_CONFIG_KEYS = Array.from(new Set(ISSUE_CONFIG_KEYS.concat(SARIF_CONFIG_KEYS)));
 /** Keys valid at the outer level */
-const OUTER_KEYS = FILTER_KEYS.concat(["filters", "configs", "key"]);
+const OUTER_KEYS = FILTER_KEYS.concat(["filters", "configs", "key", "summary"]);
 /**
  * Loads the data from the .nsconfig.yml file
  *
@@ -29617,14 +29922,16 @@ class NsConfig {
         /** filter constructed from the outermost fields (backward compatibility) */
         this.outerFilter = {};
         this.keyParams = Object.assign({}, key_1.DEFAULT_KEY_PARAMS);
+        this.summary = "short";
         const rawConfig = loadRawConfig(configPath);
         if (!rawConfig) {
             return;
         }
         checkObject(rawConfig, OUTER_KEYS, "config");
+        this.keyParams = this.parseKeys(rawConfig) || Object.assign({}, key_1.DEFAULT_KEY_PARAMS);
+        this.summary = this.parseSummary(rawConfig);
         this.parseFilters(rawConfig, checkIds);
         this.parseConfigs(rawConfig);
-        this.keyParams = this.parseKeys(rawConfig) || Object.assign({}, key_1.DEFAULT_KEY_PARAMS);
     }
     parseFilters(rawConfig, checkIds = null) {
         this.outerFilter = (0, filter_1.parseFilter)(rawConfig, checkIds);
@@ -29679,7 +29986,18 @@ class NsConfig {
             cfg.filter = this.outerFilter;
         }
         cfg.key = this.parseKeys(cfg);
+        cfg.summary = this.parseSummary(config, this.summary);
         return cfg;
+    }
+    parseSummary(cfg, defaultValue = "short") {
+        if ("summary" in cfg) {
+            const summary = cfg.summary;
+            if (typeof summary !== "string" || config_types_1.summaryLevels.indexOf(summary) < 0) {
+                throw new TypeError('summary must be one of "none", "short" or "long"');
+            }
+            return summary;
+        }
+        return defaultValue;
     }
     parseKeys(cfg) {
         if ("key" in cfg) {
@@ -29728,6 +30046,7 @@ class NsConfig {
         rawConfig = rawConfig || {
             filter: this.outerFilter,
             key: Object.assign({}, key_1.DEFAULT_KEY_PARAMS),
+            summary: this.summary,
         };
         checkObject(rawConfig, ISSUE_CONFIG_KEYS, "Issues job configuration");
         const config = {
@@ -29735,6 +30054,7 @@ class NsConfig {
             key: rawConfig.key || Object.assign({}, this.keyParams),
             labels: this.parseLabels(rawConfig.labels),
             maxRows: this.parseMaxRows(rawConfig.maxRows),
+            summary: rawConfig.summary,
         };
         return config;
     }
@@ -29742,11 +30062,13 @@ class NsConfig {
         rawConfig = rawConfig || {
             filter: this.outerFilter,
             key: Object.assign({}, key_1.DEFAULT_KEY_PARAMS),
+            summary: this.summary,
         };
         checkObject(rawConfig, SARIF_CONFIG_KEYS, "Sarif job configuration");
         const config = {
             filter: this.mergeFilters(filter_1.DEFAULT_SARIF_FILTER, rawConfig.filter),
             key: rawConfig.key || Object.assign({}, this.keyParams),
+            summary: rawConfig.summary,
         };
         return config;
     }
@@ -29823,7 +30145,8 @@ exports.NsConfig = NsConfig;
  * SPDX-License-Identifier: MIT
  */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.severity = void 0;
+exports.severity = exports.summaryLevels = void 0;
+exports.summaryLevels = ["none", "short", "long"];
 exports.severity = ["info", "medium", "low", "high", "critical"];
 
 

@@ -21,6 +21,8 @@ import {
   KeyParams,
   Labels,
   LabelLists,
+  SummaryLevel,
+  summaryLevels,
 } from "./config-types";
 import { ValueError, KeyError } from "./errors";
 import {
@@ -41,9 +43,9 @@ const FILTER_KEYS: string[] = [
 
 const KEY_KEYS: string[] = ["package", "platform", "v1-key"];
 
-const ISSUE_CONFIG_KEYS: string[] = ["filter", "key", "labels"];
+const ISSUE_CONFIG_KEYS: string[] = ["filter", "key", "labels", "summary"];
 
-const SARIF_CONFIG_KEYS: string[] = ["filter", "key"];
+const SARIF_CONFIG_KEYS: string[] = ["filter", "key", "summary"];
 
 const LABEL_LIST_KEYS: (keyof LabelLists)[] = [
   "always",
@@ -60,6 +62,7 @@ const LABEL_KEYS: string[] = [...LABEL_LIST_KEYS, "category-labels"];
 interface PartiallyParsedConfig {
   filter: Filter;
   key: KeyParams;
+  summary: SummaryLevel;
 
   /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
   [index: string]: any;
@@ -70,7 +73,7 @@ const ALL_CONFIG_KEYS: string[] = Array.from(
 );
 
 /** Keys valid at the outer level */
-const OUTER_KEYS = FILTER_KEYS.concat(["filters", "configs", "key"]);
+const OUTER_KEYS = FILTER_KEYS.concat(["filters", "configs", "key", "summary"]);
 
 /**
  * Loads the data from the .nsconfig.yml file
@@ -145,9 +148,10 @@ export class NsConfig {
     }
 
     checkObject(rawConfig, OUTER_KEYS, "config");
+    this.keyParams = this.parseKeys(rawConfig) || { ...DEFAULT_KEY_PARAMS };
+    this.summary = this.parseSummary(rawConfig);
     this.parseFilters(rawConfig, checkIds);
     this.parseConfigs(rawConfig);
-    this.keyParams = this.parseKeys(rawConfig) || { ...DEFAULT_KEY_PARAMS };
   }
 
   private parseFilters(rawConfig: JSONObject, checkIds: string[] = null) {
@@ -206,8 +210,23 @@ export class NsConfig {
     }
 
     cfg.key = this.parseKeys(cfg);
-
+    cfg.summary = this.parseSummary(config, this.summary);
     return cfg;
+  }
+
+  private parseSummary(
+    cfg: JSONObject,
+    defaultValue: SummaryLevel = "short"
+  ): SummaryLevel {
+    if ("summary" in cfg) {
+      const summary = cfg.summary;
+      if (typeof summary !== "string" || summaryLevels.indexOf(summary) < 0) {
+        throw new TypeError('summary must be one of "none", "short" or "long"');
+      }
+      return summary as SummaryLevel;
+    }
+
+    return defaultValue;
   }
 
   private parseKeys(cfg: JSONObject): KeyParams {
@@ -270,6 +289,7 @@ export class NsConfig {
     rawConfig = rawConfig || {
       filter: this.outerFilter,
       key: { ...DEFAULT_KEY_PARAMS },
+      summary: this.summary,
     };
     checkObject(rawConfig, ISSUE_CONFIG_KEYS, "Issues job configuration");
     const config: IssuesJobConfig = {
@@ -277,6 +297,7 @@ export class NsConfig {
       key: rawConfig.key || { ...this.keyParams },
       labels: this.parseLabels(rawConfig.labels),
       maxRows: this.parseMaxRows(rawConfig.maxRows),
+      summary: rawConfig.summary,
     };
     return config;
   }
@@ -285,11 +306,13 @@ export class NsConfig {
     rawConfig = rawConfig || {
       filter: this.outerFilter,
       key: { ...DEFAULT_KEY_PARAMS },
+      summary: this.summary,
     };
     checkObject(rawConfig, SARIF_CONFIG_KEYS, "Sarif job configuration");
     const config: SarifJobConfig = {
       filter: this.mergeFilters(DEFAULT_SARIF_FILTER, rawConfig.filter),
       key: rawConfig.key || { ...this.keyParams },
+      summary: rawConfig.summary,
     };
     return config;
   }
@@ -369,4 +392,6 @@ export class NsConfig {
   private outerFilter: Filter = {};
 
   private keyParams: KeyParams = { ...DEFAULT_KEY_PARAMS };
+
+  private summary: SummaryLevel = "short";
 }
