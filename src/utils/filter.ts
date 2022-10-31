@@ -4,9 +4,17 @@
  * SPDX-License-Identifier: MIT
  */
 
+import { cloneDeep } from "lodash";
 import type { Finding } from "../types/platform";
 import { severity, Filter, JSONObject, JSONType } from "./config-types";
 import { ValueError, CustomError } from "./errors";
+
+export const DEFAULT_FILTER: Filter = {
+  severityFilter: severityToSarif("medium"),
+  includeWarnings: false,
+  includeChecks: [],
+  excludeChecks: [],
+};
 
 /** Fields are all valid but the overall filter doesn't make sense */
 export class InvalidFilterError extends CustomError {}
@@ -108,7 +116,7 @@ export function parseFilter(
 ): Filter {
   // We do not call checkObject here as the outermost level may have
   // keys other than the filter keys
-  const checkedConfig: Filter = {};
+  const checkedConfig: Filter = cloneDeep(DEFAULT_FILTER);
   const include = filterConfig["include-checks"];
   const exclude = filterConfig["exclude-checks"];
   const severityInput = filterConfig["minimum-severity"];
@@ -160,10 +168,6 @@ export function parseFilter(
   return checkedConfig;
 }
 
-export const DEFAULT_SARIF_FILTER: Filter = {
-  severityFilter: ["critical", "high", "medium"],
-};
+export const DEFAULT_SARIF_FILTER: Filter = cloneDeep(DEFAULT_FILTER);
 
-export const DEFAULT_ISSUES_FILTER: Filter = {
-  severityFilter: ["critical", "high", "medium"],
-};
+export const DEFAULT_ISSUES_FILTER: Filter = cloneDeep(DEFAULT_FILTER);

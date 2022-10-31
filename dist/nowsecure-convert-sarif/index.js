@@ -29525,6 +29525,11 @@ exports.submitSnapshotData = submitSnapshotData;
 
 "use strict";
 
+/*
+ * Copyright © 2022 NowSecure Inc.
+ *
+ * SPDX-License-Identifier: MIT
+ */
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
@@ -29826,7 +29831,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.NsConfig = void 0;
+exports.NsConfig = exports.DEFAULT_LABELS = exports.DEFAULT_MAX_ROWS = void 0;
 const fs_1 = __importDefault(__nccwpck_require__(7147));
 const path_1 = __importDefault(__nccwpck_require__(1017));
 const yaml_1 = __importDefault(__nccwpck_require__(4603));
@@ -29857,7 +29862,24 @@ const LABEL_LIST_KEYS = [
 const LABEL_KEYS = [...LABEL_LIST_KEYS, "category-labels"];
 const ALL_CONFIG_KEYS = Array.from(new Set(ISSUE_CONFIG_KEYS.concat(SARIF_CONFIG_KEYS)));
 /** Keys valid at the outer level */
-const OUTER_KEYS = FILTER_KEYS.concat(["filters", "configs", "key", "summary"]);
+const OUTER_KEYS = FILTER_KEYS.concat([
+    "filters",
+    "configs",
+    "key",
+    "summary",
+    "labels",
+]);
+exports.DEFAULT_MAX_ROWS = 20;
+exports.DEFAULT_LABELS = {
+    always: ["NowSecure"],
+    critical: [],
+    high: [],
+    medium: [],
+    low: [],
+    warning: [],
+    info: [],
+    categoryLabels: false,
+};
 /**
  * Loads the data from the .nsconfig.yml file
  *
@@ -29920,9 +29942,10 @@ class NsConfig {
         /** named filters */
         this.filters = {};
         /** filter constructed from the outermost fields (backward compatibility) */
-        this.outerFilter = {};
-        this.keyParams = Object.assign({}, key_1.DEFAULT_KEY_PARAMS);
+        this.outerFilter = (0, lodash_1.cloneDeep)(filter_1.DEFAULT_FILTER);
+        this.keyParams = (0, lodash_1.cloneDeep)(key_1.DEFAULT_KEY_PARAMS);
         this.summary = "short";
+        this.labels = (0, lodash_1.cloneDeep)(exports.DEFAULT_LABELS);
         const rawConfig = loadRawConfig(configPath);
         if (!rawConfig) {
             return;
@@ -29932,6 +29955,7 @@ class NsConfig {
         this.summary = this.parseSummary(rawConfig);
         this.parseFilters(rawConfig, checkIds);
         this.parseConfigs(rawConfig);
+        this.labels = this.parseLabels(rawConfig.labels, exports.DEFAULT_LABELS);
     }
     parseFilters(rawConfig, checkIds = null) {
         this.outerFilter = (0, filter_1.parseFilter)(rawConfig, checkIds);
@@ -29979,7 +30003,9 @@ class NsConfig {
                 cfg.filter = this.getRawFilter(cfg.filter);
             }
             else {
-                cfg.filter = (0, filter_1.parseFilter)(cfg.filter);
+                if (checkObject(cfg.filter, FILTER_KEYS, "Filter")) {
+                    cfg.filter = (0, filter_1.parseFilter)(cfg.filter);
+                }
             }
         }
         else {
@@ -30045,14 +30071,14 @@ class NsConfig {
     parseIssuesConfig(rawConfig) {
         rawConfig = rawConfig || {
             filter: this.outerFilter,
-            key: Object.assign({}, key_1.DEFAULT_KEY_PARAMS),
             summary: this.summary,
+            key: null,
         };
         checkObject(rawConfig, ISSUE_CONFIG_KEYS, "Issues job configuration");
         const config = {
             filter: this.mergeFilters(filter_1.DEFAULT_ISSUES_FILTER, rawConfig.filter),
             key: rawConfig.key || Object.assign({}, this.keyParams),
-            labels: this.parseLabels(rawConfig.labels),
+            labels: this.parseLabels(rawConfig.labels, this.labels),
             maxRows: this.parseMaxRows(rawConfig.maxRows),
             summary: rawConfig.summary,
         };
@@ -30061,8 +30087,8 @@ class NsConfig {
     parseSarifConfig(rawConfig) {
         rawConfig = rawConfig || {
             filter: this.outerFilter,
-            key: Object.assign({}, key_1.DEFAULT_KEY_PARAMS),
             summary: this.summary,
+            key: null,
         };
         checkObject(rawConfig, SARIF_CONFIG_KEYS, "Sarif job configuration");
         const config = {
@@ -30072,7 +30098,7 @@ class NsConfig {
         };
         return config;
     }
-    parseLabels(labels) {
+    parseLabels(labels, defaultValue) {
         const checkList = (test, listName) => {
             if (test === undefined) {
                 return [];
@@ -30086,19 +30112,19 @@ class NsConfig {
             return test;
         };
         if (labels === undefined) {
-            return { always: ["NowSecure"] };
+            return (0, lodash_1.cloneDeep)(defaultValue);
         }
         if (typeof labels === "string") {
-            return { always: [labels] };
+            return Object.assign(Object.assign({}, (0, lodash_1.cloneDeep)(exports.DEFAULT_LABELS)), { always: [labels] });
         }
         if ((0, lodash_1.isArray)(labels)) {
             if (!(0, filter_1.isStringArray)(labels)) {
                 throw new TypeError(`labels must be a string, a list of strings or a Labels object`);
             }
-            return { always: labels };
+            return Object.assign(Object.assign({}, (0, lodash_1.cloneDeep)(exports.DEFAULT_LABELS)), { always: labels });
         }
         checkObject(labels, LABEL_KEYS, "labels");
-        const ret = {};
+        const ret = (0, lodash_1.cloneDeep)(exports.DEFAULT_LABELS);
         for (const key of LABEL_LIST_KEYS) {
             if (key in labels) {
                 ret[key] = checkList(labels[key], key);
@@ -30115,7 +30141,7 @@ class NsConfig {
     }
     parseMaxRows(rows) {
         if (rows === undefined) {
-            return 20;
+            return exports.DEFAULT_MAX_ROWS;
         }
         if (typeof rows !== "number") {
             throw new TypeError("max-rows must be a number");
@@ -30196,9 +30222,16 @@ exports.KeyError = KeyError;
  * SPDX-License-Identifier: MIT
  */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.DEFAULT_ISSUES_FILTER = exports.DEFAULT_SARIF_FILTER = exports.parseFilter = exports.isStringArray = exports.findingMatchesFilter = exports.InvalidFilterError = void 0;
+exports.DEFAULT_ISSUES_FILTER = exports.DEFAULT_SARIF_FILTER = exports.parseFilter = exports.isStringArray = exports.findingMatchesFilter = exports.InvalidFilterError = exports.DEFAULT_FILTER = void 0;
+const lodash_1 = __nccwpck_require__(250);
 const config_types_1 = __nccwpck_require__(2459);
 const errors_1 = __nccwpck_require__(2579);
+exports.DEFAULT_FILTER = {
+    severityFilter: severityToSarif("medium"),
+    includeWarnings: false,
+    includeChecks: [],
+    excludeChecks: [],
+};
 /** Fields are all valid but the overall filter doesn't make sense */
 class InvalidFilterError extends errors_1.CustomError {
 }
@@ -30270,7 +30303,7 @@ function isValidCheck(checkInputs, listName, checkIds = null) {
 function parseFilter(filterConfig, checkIds = null) {
     // We do not call checkObject here as the outermost level may have
     // keys other than the filter keys
-    const checkedConfig = {};
+    const checkedConfig = (0, lodash_1.cloneDeep)(exports.DEFAULT_FILTER);
     const include = filterConfig["include-checks"];
     const exclude = filterConfig["exclude-checks"];
     const severityInput = filterConfig["minimum-severity"];
@@ -30309,12 +30342,8 @@ function parseFilter(filterConfig, checkIds = null) {
     return checkedConfig;
 }
 exports.parseFilter = parseFilter;
-exports.DEFAULT_SARIF_FILTER = {
-    severityFilter: ["critical", "high", "medium"],
-};
-exports.DEFAULT_ISSUES_FILTER = {
-    severityFilter: ["critical", "high", "medium"],
-};
+exports.DEFAULT_SARIF_FILTER = (0, lodash_1.cloneDeep)(exports.DEFAULT_FILTER);
+exports.DEFAULT_ISSUES_FILTER = (0, lodash_1.cloneDeep)(exports.DEFAULT_FILTER);
 
 
 /***/ }),

@@ -9,7 +9,6 @@ import { Finding, Assessment } from "./types/platform";
 import { SummaryTableRow } from "@actions/core/lib/summary";
 import { assessmentLink } from "./utils";
 import { IssueAction, IssueActionType } from "./nowsecure-issues";
-import { find } from "lodash";
 
 export type FindingToIssueMap = {
   [index: string]: IssueAction;
