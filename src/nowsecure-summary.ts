@@ -1,3 +1,9 @@
+/*
+ * Copyright © 2022 NowSecure Inc.
+ *
+ * SPDX-License-Identifier: MIT
+ */
+
 import * as core from "@actions/core";
 import { Finding, Assessment } from "./types/platform";
 import { SummaryTableRow } from "@actions/core/lib/summary";
