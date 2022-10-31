@@ -96,6 +96,9 @@ export type ImpactType =
   | "high"
   | "critical";
 
+export interface ContextRow {
+  [key: string]: unknown;
+}
 export interface Finding {
   kind: FindingType;
   key: string;
@@ -113,11 +116,10 @@ export interface Finding {
     fields: {
       [key: string]: { title: string };
     };
-    rows: {
-      [key: string]: unknown;
-    }[];
+    rows: ContextRow[];
   };
   check: {
+    context: ContextInfo;
     issue: {
       warn: boolean;
       title: string;
@@ -156,4 +158,16 @@ export interface RegulationLink {
 export interface Regulation {
   label: string;
   links: RegulationLink[];
+}
+
+export interface ContextFieldInfo {
+  key: string;
+  title: string;
+  format: string;
+}
+
+export interface ContextInfo {
+  view: string;
+  title: string;
+  fields: ContextFieldInfo[];
 }

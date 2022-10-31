@@ -35,6 +35,11 @@ export function nsIssueTag(
   return "nowsecure_unique_id=" + findingKey(assessment, finding, keyParams);
 }
 
+const log =
+  process.env.NODE_ENV !== "test"
+    ? console.log
+    : (message?: any, ...optional: any[]) => {};
+
 /**
  * Determines what to do for each finding in a list.
  *
@@ -55,7 +60,7 @@ export function processFindingIssues(
   // Note:  if there are pull requests open OR closed, they will have been returned
   // in the result set of the /issues API call.
   const hasExisting = existingIssues && existingIssues.length;
-  console.log(
+  log(
     hasExisting
       ? `${existingIssues.length} issues found`
       : "No existing issues found"
@@ -68,7 +73,7 @@ export function processFindingIssues(
         : null;
 
       if (!issueToUpdate) {
-        console.log(
+        log(
           `Finding ${finding.key}: Creating a new issue, ${finding.title} / ${finding.severity}`
         );
         actionList.push({
@@ -77,20 +82,18 @@ export function processFindingIssues(
           action: IssueActionType.CREATE,
         });
       } else if (issueToUpdate.state === "open") {
-        console.log(
+        log(
           `Finding ${finding.key}: Found open issue ${issueToUpdate.number}, no action required`
         );
       } else if (issueToUpdate.state === "closed") {
-        console.log(
-          `Finding ${finding.key}: Re-open issue ${issueToUpdate.number}`
-        );
+        log(`Finding ${finding.key}: Re-open issue ${issueToUpdate.number}`);
         actionList.push({
           finding,
           existingId: issueToUpdate.number,
           action: IssueActionType.REOPEN,
         });
       } else {
-        console.log(
+        log(
           `Issue ${issueToUpdate.number} has unexpected state ${issueToUpdate.state}`
         );
       }

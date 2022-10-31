@@ -68,6 +68,15 @@ const platformGql = (reportId: string): string => `{
             rows
           }
           check {
+            context {
+              view
+              title
+              fields {
+                key
+                title
+                format
+              }
+            }
             issue {
               title
               warn

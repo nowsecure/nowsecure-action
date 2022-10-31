@@ -37,7 +37,8 @@
       "properties": {
         "filter": { "$ref": "#/$defs/filterorstring" },
         "key": { "$ref": "#/$defs/keyparams" },
-        "labels": { "$ref": "#/$defs/labels" }
+        "labels": { "$ref": "#/$defs/labels" },
+        "max-rows": { "type": "integer", "minimum": 0 }
       },
       "unevaluatedProperties": false
     },
