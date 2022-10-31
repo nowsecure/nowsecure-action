@@ -43,7 +43,7 @@ export class GitHubRepo {
   }
 
   async createIssue(issue: GitHub.CreateIssueParams) {
-    await this.octokit.request("POST /repos/{owner}/{repo}/issues", {
+    return await this.octokit.request("POST /repos/{owner}/{repo}/issues", {
       owner: this.repoOwner,
       repo: this.repoName,
       ...issue,
@@ -51,7 +51,7 @@ export class GitHubRepo {
   }
 
   async closeIssue(issueId: number) {
-    await this.octokit.request(
+    return await this.octokit.request(
       "PATCH /repos/{owner}/{repo}/issues/{issue_number}",
       {
         owner: this.repoOwner,
@@ -63,7 +63,7 @@ export class GitHubRepo {
   }
 
   async reopenIssue(issueId: number) {
-    await this.octokit.request(
+    return await this.octokit.request(
       "PATCH /repos/{owner}/{repo}/issues/{issue_number}",
       {
         owner: this.repoOwner,

@@ -12,7 +12,6 @@ import { DEFAULT_KEY_PARAMS, Filter, parseFilter } from "../utils";
 import {
   IssueAction,
   IssueActionType,
-  NO_ISSUE_ID,
   processFindingIssues,
 } from "../nowsecure-issues";
 import { Assessment, Finding } from "../types/platform";
@@ -64,7 +63,7 @@ describe("create Issues", () => {
     const expectedActions: IssueAction[] = expected.map((x) => {
       return {
         finding: x,
-        existingId: NO_ISSUE_ID,
+        existingIssue: null,
         action: IssueActionType.CREATE,
       };
     });
@@ -86,6 +85,9 @@ describe("create Issues", () => {
       filter,
       DEFAULT_KEY_PARAMS
     );
-    expect(actions).toEqual([]);
+    expect(actions.length).toEqual(5);
+    expect(
+      actions.filter((action) => action.action != IssueActionType.NO_ACTION)
+    ).toEqual([]);
   });
 });

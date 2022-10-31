@@ -19,6 +19,8 @@ filters:
       - check_4
     minimum-severity: info
 
+summary: long
+
 configs:
   empty: {}
   inline-filter:
@@ -40,3 +42,5 @@ configs:
     key:
       platform: false
       package: true
+  summary:
+    summary: none

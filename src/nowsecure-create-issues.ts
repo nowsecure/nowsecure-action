@@ -7,24 +7,22 @@
 import * as core from "@actions/core";
 import { NowSecure } from "./nowsecure-client";
 import { Assessment, Finding } from "./types/platform";
-import {
-  NsConfig,
-  CustomError,
-  platformConfig,
-  findingKey,
-  KeyParams,
-} from "./utils";
+import { NsConfig, CustomError, platformConfig } from "./utils";
 import { GitHubRepo } from "./utils/github-issues";
 import {
   IssueActionType,
   nsIssueTag,
   processFindingIssues,
-  findingLabels,
 } from "./nowsecure-issues";
 import * as github from "@actions/github";
 import GitHub from "./types/github";
 import { renderFinding } from "./issue-templates";
 import { FindingRenderOptions } from "./issue-templates/render_finding";
+import {
+  FindingToIssueMap,
+  githubJobSummary,
+  githubWriteJobSummary,
+} from "./nowsecure-summary";
 
 /** Rate limit will not permit that many calls. Wait until the reset data */
 class InsufficientRateLimitAvailableError extends CustomError {
@@ -139,17 +137,27 @@ ${nsIssueTag(assessment, finding, jobConfig.key)}
     );
   }
 
+  const issueMap: FindingToIssueMap = {};
+
+  // Process the required actions, updating the finding key -> action mapping
   for (const action of actionList) {
     const finding = action.finding;
+    issueMap[action.finding.key] = action;
     switch (action.action) {
       case IssueActionType.CREATE:
-        await createIssue(finding);
+        const { data } = await createIssue(finding);
+        action.existingIssue = data;
         break;
 
       case IssueActionType.REOPEN:
-        await repo.reopenIssue(action.existingId);
+        await repo.reopenIssue(action.existingIssue.number);
         break;
     }
+  }
+
+  if (jobConfig.summary !== "none") {
+    githubJobSummary(jobConfig.summary, baseUrl, assessment, issueMap);
+    await githubWriteJobSummary();
   }
 }
 

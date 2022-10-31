@@ -8,6 +8,7 @@ import {
   Regulation,
   Severity,
 } from "../types/platform";
+import { assessmentLink } from "../utils";
 import { SectionList, SECTIONS, TEMPLATES, Templates } from "./index";
 
 const MD_ESCAPE = /([`|\\])/g;
@@ -168,12 +169,12 @@ export function renderFinding(
     (link) => matchesPlatform(link, platform)
   );
 
-  const assessmentLink = `${baseUrl}/app/${assessment.applicationRef}/assessment/${assessment.taskId}#finding-${finding.checkId}`;
+  const asmtLink = assessmentLink(baseUrl, assessment, finding);
 
   const values = {
     platform: assessment.platformType,
     package: assessment.packageKey,
-    assessmentLink: assessmentLink,
+    assessmentLink: asmtLink,
     kind: finding.kind,
     title: finding.title,
     category: finding.category,

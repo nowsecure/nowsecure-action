@@ -14,17 +14,16 @@ import {
 import GitHub from "./types/github";
 
 export enum IssueActionType {
+  NO_ACTION,
   CREATE,
   REOPEN,
 }
 
 export interface IssueAction {
   finding: Finding;
-  existingId: number;
+  existingIssue: GitHub.Issue;
   action: IssueActionType;
 }
-
-export const NO_ISSUE_ID = 0;
 
 /** Generate unique tag for finding, used to re-identify existing issues we created */
 export function nsIssueTag(
@@ -78,24 +77,34 @@ export function processFindingIssues(
         );
         actionList.push({
           finding,
-          existingId: NO_ISSUE_ID,
+          existingIssue: null,
           action: IssueActionType.CREATE,
         });
       } else if (issueToUpdate.state === "open") {
         log(
           `Finding ${finding.key}: Found open issue ${issueToUpdate.number}, no action required`
         );
+        actionList.push({
+          finding,
+          existingIssue: issueToUpdate,
+          action: IssueActionType.NO_ACTION,
+        });
       } else if (issueToUpdate.state === "closed") {
         log(`Finding ${finding.key}: Re-open issue ${issueToUpdate.number}`);
         actionList.push({
           finding,
-          existingId: issueToUpdate.number,
+          existingIssue: issueToUpdate,
           action: IssueActionType.REOPEN,
         });
       } else {
         log(
           `Issue ${issueToUpdate.number} has unexpected state ${issueToUpdate.state}`
         );
+        actionList.push({
+          finding,
+          existingIssue: issueToUpdate,
+          action: IssueActionType.NO_ACTION,
+        });
       }
     }
   }

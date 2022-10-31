@@ -90,6 +90,7 @@ describe("config file validation", () => {
     const refConfig = config.getConfig("reference-filter", "issues");
     const keyConfig1 = config.getConfig("key-params-1", "issues");
     const keyConfig2 = config.getConfig("key-params-2", "issues");
+    const summaryConfig = config.getConfig("summary", "issues");
 
     expect(emptyConfig.filter.excludeChecks).toEqual(["check_1"]);
     expect(inlineConfig.filter.excludeChecks).toEqual(["check_5"]);
@@ -106,6 +107,8 @@ describe("config file validation", () => {
     expect(keyConfig2.key.includePackage).toBe(true);
     expect(keyConfig2.key.v1platform).toBeNull();
     expect(keyConfig2.key.v1package).toBeNull();
+    expect(summaryConfig.summary).toEqual("none");
+    expect(keyConfig2.summary).toEqual("long");
   });
 
   test("Parses labels config", () => {

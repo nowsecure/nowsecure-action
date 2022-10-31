@@ -140,6 +140,7 @@ const file_command_1 = __nccwpck_require__(717);
 const utils_1 = __nccwpck_require__(5278);
 const os = __importStar(__nccwpck_require__(2037));
 const path = __importStar(__nccwpck_require__(1017));
+const uuid_1 = __nccwpck_require__(5840);
 const oidc_utils_1 = __nccwpck_require__(8041);
 /**
  * The code to exit an action
@@ -169,9 +170,20 @@ function exportVariable(name, val) {
     process.env[name] = convertedVal;
     const filePath = process.env['GITHUB_ENV'] || '';
     if (filePath) {
-        return file_command_1.issueFileCommand('ENV', file_command_1.prepareKeyValueMessage(name, val));
+        const delimiter = `ghadelimiter_${uuid_1.v4()}`;
+        // These should realistically never happen, but just in case someone finds a way to exploit uuid generation let's not allow keys or values that contain the delimiter.
+        if (name.includes(delimiter)) {
+            throw new Error(`Unexpected input: name should not contain the delimiter "${delimiter}"`);
+        }
+        if (convertedVal.includes(delimiter)) {
+            throw new Error(`Unexpected input: value should not contain the delimiter "${delimiter}"`);
+        }
+        const commandValue = `${name}<<${delimiter}${os.EOL}${convertedVal}${os.EOL}${delimiter}`;
+        file_command_1.issueCommand('ENV', commandValue);
     }
-    command_1.issueCommand('set-env', { name }, convertedVal);
+    else {
+        command_1.issueCommand('set-env', { name }, convertedVal);
+    }
 }
 exports.exportVariable = exportVariable;
 /**
@@ -189,7 +201,7 @@ exports.setSecret = setSecret;
 function addPath(inputPath) {
     const filePath = process.env['GITHUB_PATH'] || '';
     if (filePath) {
-        file_command_1.issueFileCommand('PATH', inputPath);
+        file_command_1.issueCommand('PATH', inputPath);
     }
     else {
         command_1.issueCommand('add-path', {}, inputPath);
@@ -229,10 +241,7 @@ function getMultilineInput(name, options) {
     const inputs = getInput(name, options)
         .split('\n')
         .filter(x => x !== '');
-    if (options && options.trimWhitespace === false) {
-        return inputs;
-    }
-    return inputs.map(input => input.trim());
+    return inputs;
 }
 exports.getMultilineInput = getMultilineInput;
 /**
@@ -265,12 +274,8 @@ exports.getBooleanInput = getBooleanInput;
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function setOutput(name, value) {
-    const filePath = process.env['GITHUB_OUTPUT'] || '';
-    if (filePath) {
-        return file_command_1.issueFileCommand('OUTPUT', file_command_1.prepareKeyValueMessage(name, value));
-    }
     process.stdout.write(os.EOL);
-    command_1.issueCommand('set-output', { name }, utils_1.toCommandValue(value));
+    command_1.issueCommand('set-output', { name }, value);
 }
 exports.setOutput = setOutput;
 /**
@@ -399,11 +404,7 @@ exports.group = group;
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function saveState(name, value) {
-    const filePath = process.env['GITHUB_STATE'] || '';
-    if (filePath) {
-        return file_command_1.issueFileCommand('STATE', file_command_1.prepareKeyValueMessage(name, value));
-    }
-    command_1.issueCommand('save-state', { name }, utils_1.toCommandValue(value));
+    command_1.issueCommand('save-state', { name }, value);
 }
 exports.saveState = saveState;
 /**
@@ -469,14 +470,13 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.prepareKeyValueMessage = exports.issueFileCommand = void 0;
+exports.issueCommand = void 0;
 // We use any as a valid input type
 /* eslint-disable @typescript-eslint/no-explicit-any */
 const fs = __importStar(__nccwpck_require__(7147));
 const os = __importStar(__nccwpck_require__(2037));
-const uuid_1 = __nccwpck_require__(5840);
 const utils_1 = __nccwpck_require__(5278);
-function issueFileCommand(command, message) {
+function issueCommand(command, message) {
     const filePath = process.env[`GITHUB_${command}`];
     if (!filePath) {
         throw new Error(`Unable to find environment variable for file command ${command}`);
@@ -488,22 +488,7 @@ function issueFileCommand(command, message) {
         encoding: 'utf8'
     });
 }
-exports.issueFileCommand = issueFileCommand;
-function prepareKeyValueMessage(key, value) {
-    const delimiter = `ghadelimiter_${uuid_1.v4()}`;
-    const convertedValue = utils_1.toCommandValue(value);
-    // These should realistically never happen, but just in case someone finds a
-    // way to exploit uuid generation let's not allow keys or values that contain
-    // the delimiter.
-    if (key.includes(delimiter)) {
-        throw new Error(`Unexpected input: name should not contain the delimiter "${delimiter}"`);
-    }
-    if (convertedValue.includes(delimiter)) {
-        throw new Error(`Unexpected input: value should not contain the delimiter "${delimiter}"`);
-    }
-    return `${key}<<${delimiter}${os.EOL}${convertedValue}${os.EOL}${delimiter}`;
-}
-exports.prepareKeyValueMessage = prepareKeyValueMessage;
+exports.issueCommand = issueCommand;
 //# sourceMappingURL=file-command.js.map
 
 /***/ }),
@@ -22636,7 +22621,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.outputToSarif = exports.outputToDependencies = exports.platformConfig = exports.sleep = void 0;
+exports.outputToSarif = exports.outputToDependencies = exports.platformConfig = exports.assessmentLink = exports.sleep = void 0;
 const fs_1 = __nccwpck_require__(7147);
 const core = __importStar(__nccwpck_require__(2186));
 const nowsecure_sarif_1 = __nccwpck_require__(9475);
@@ -22649,6 +22634,13 @@ function sleep(milliseconds) {
     });
 }
 exports.sleep = sleep;
+const assessmentLink = (labUrl, assessment, finding) => {
+    const assessmentUrl = `${labUrl}/app/${assessment.applicationRef}/assessment/${assessment.taskId}`;
+    return (finding === null || finding === void 0 ? void 0 : finding.checkId)
+        ? assessmentUrl + `#finding-${finding.checkId}`
+        : assessmentUrl;
+};
+exports.assessmentLink = assessmentLink;
 function platformConfig() {
     return {
         token: core.getInput("platform_token"),
@@ -22707,6 +22699,7 @@ const fs_1 = __importDefault(__nccwpck_require__(7147));
 const path_1 = __importDefault(__nccwpck_require__(1017));
 const yaml_1 = __importDefault(__nccwpck_require__(4603));
 const lodash_1 = __nccwpck_require__(250);
+const config_types_1 = __nccwpck_require__(2459);
 const errors_1 = __nccwpck_require__(2579);
 const filter_1 = __nccwpck_require__(2284);
 const key_1 = __nccwpck_require__(3225);
@@ -22718,8 +22711,8 @@ const FILTER_KEYS = [
     "include-warnings",
 ];
 const KEY_KEYS = ["package", "platform", "v1-key"];
-const ISSUE_CONFIG_KEYS = ["filter", "key", "labels"];
-const SARIF_CONFIG_KEYS = ["filter", "key"];
+const ISSUE_CONFIG_KEYS = ["filter", "key", "labels", "summary"];
+const SARIF_CONFIG_KEYS = ["filter", "key", "summary"];
 const LABEL_LIST_KEYS = [
     "always",
     "info",
@@ -22732,7 +22725,7 @@ const LABEL_LIST_KEYS = [
 const LABEL_KEYS = [...LABEL_LIST_KEYS, "category-labels"];
 const ALL_CONFIG_KEYS = Array.from(new Set(ISSUE_CONFIG_KEYS.concat(SARIF_CONFIG_KEYS)));
 /** Keys valid at the outer level */
-const OUTER_KEYS = FILTER_KEYS.concat(["filters", "configs", "key"]);
+const OUTER_KEYS = FILTER_KEYS.concat(["filters", "configs", "key", "summary"]);
 /**
  * Loads the data from the .nsconfig.yml file
  *
@@ -22797,14 +22790,16 @@ class NsConfig {
         /** filter constructed from the outermost fields (backward compatibility) */
         this.outerFilter = {};
         this.keyParams = Object.assign({}, key_1.DEFAULT_KEY_PARAMS);
+        this.summary = "short";
         const rawConfig = loadRawConfig(configPath);
         if (!rawConfig) {
             return;
         }
         checkObject(rawConfig, OUTER_KEYS, "config");
+        this.keyParams = this.parseKeys(rawConfig) || Object.assign({}, key_1.DEFAULT_KEY_PARAMS);
+        this.summary = this.parseSummary(rawConfig);
         this.parseFilters(rawConfig, checkIds);
         this.parseConfigs(rawConfig);
-        this.keyParams = this.parseKeys(rawConfig) || Object.assign({}, key_1.DEFAULT_KEY_PARAMS);
     }
     parseFilters(rawConfig, checkIds = null) {
         this.outerFilter = (0, filter_1.parseFilter)(rawConfig, checkIds);
@@ -22859,7 +22854,18 @@ class NsConfig {
             cfg.filter = this.outerFilter;
         }
         cfg.key = this.parseKeys(cfg);
+        cfg.summary = this.parseSummary(config, this.summary);
         return cfg;
+    }
+    parseSummary(cfg, defaultValue = "short") {
+        if ("summary" in cfg) {
+            const summary = cfg.summary;
+            if (typeof summary !== "string" || config_types_1.summaryLevels.indexOf(summary) < 0) {
+                throw new TypeError('summary must be one of "none", "short" or "long"');
+            }
+            return summary;
+        }
+        return defaultValue;
     }
     parseKeys(cfg) {
         if ("key" in cfg) {
@@ -22908,6 +22914,7 @@ class NsConfig {
         rawConfig = rawConfig || {
             filter: this.outerFilter,
             key: Object.assign({}, key_1.DEFAULT_KEY_PARAMS),
+            summary: this.summary,
         };
         checkObject(rawConfig, ISSUE_CONFIG_KEYS, "Issues job configuration");
         const config = {
@@ -22915,6 +22922,7 @@ class NsConfig {
             key: rawConfig.key || Object.assign({}, this.keyParams),
             labels: this.parseLabels(rawConfig.labels),
             maxRows: this.parseMaxRows(rawConfig.maxRows),
+            summary: rawConfig.summary,
         };
         return config;
     }
@@ -22922,11 +22930,13 @@ class NsConfig {
         rawConfig = rawConfig || {
             filter: this.outerFilter,
             key: Object.assign({}, key_1.DEFAULT_KEY_PARAMS),
+            summary: this.summary,
         };
         checkObject(rawConfig, SARIF_CONFIG_KEYS, "Sarif job configuration");
         const config = {
             filter: this.mergeFilters(filter_1.DEFAULT_SARIF_FILTER, rawConfig.filter),
             key: rawConfig.key || Object.assign({}, this.keyParams),
+            summary: rawConfig.summary,
         };
         return config;
     }
@@ -23003,7 +23013,8 @@ exports.NsConfig = NsConfig;
  * SPDX-License-Identifier: MIT
  */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.severity = void 0;
+exports.severity = exports.summaryLevels = void 0;
+exports.summaryLevels = ["none", "short", "long"];
 exports.severity = ["info", "medium", "low", "high", "critical"];
 
 
