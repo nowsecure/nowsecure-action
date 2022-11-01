@@ -21,8 +21,12 @@ inputs:
     default: "https://lab-api.nowsecure.com"
   lab_url:
     required: false
-    description: "NowSecure Lab URL."
-    default: "https://lab.nowsecure.com"
+    description: "NowSecure webserver URL."
+    default: "https://app.nowsecure.com"
+  lab_type:
+    required: false
+    description: '"rainier" or "classic": The type of server referred to by lab_url'
+    default: "rainier"
   config_path:
     required: false
     description: "Path containing .nsconfig.yml"

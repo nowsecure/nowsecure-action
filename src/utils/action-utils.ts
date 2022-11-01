@@ -18,6 +18,12 @@ import type {
   PullReportResponse,
 } from "../types/platform";
 import { Filter, KeyParams } from "./config-types";
+import { ValueError } from "./errors";
+import {
+  DEFAULT_API_URL,
+  DEFAULT_LAB_API_URL,
+  DEFAULT_LAB_UI_URL,
+} from "../nowsecure-client";
 
 const { writeFile } = promises;
 
@@ -28,38 +34,66 @@ export function sleep(milliseconds: number): Promise<void> {
   });
 }
 
-export interface PlatformConfig {
-  /** API token */
-  token: string;
+export class PlatformConfig {
+  constructor(
+    /** API token */
+    public token: string,
+    /** GraphQL server */
+    public apiUrl: string = DEFAULT_API_URL,
+    /** REST API (uploads) */
+    public labApiUrl: string = DEFAULT_LAB_API_URL,
+    /** UI address */
+    public labUrl: string = DEFAULT_LAB_UI_URL,
+    /** UI type */
+    public rainier: boolean = true
+  ) {}
 
-  /** GraphQL server */
-  apiUrl: string;
-
-  /** REST API (uploads) */
-  labApiUrl: string;
-
-  /** UI address */
-  labUrl: string;
+  assessmentLink(assessment: Assessment, finding?: Finding) {
+    return assessmentLink(this.labUrl, this.rainier, assessment, finding);
+  }
 }
 
 export const assessmentLink = (
   labUrl: string,
+  rainier: boolean,
   assessment: Assessment,
   finding?: Finding
 ) => {
-  const assessmentUrl = `${labUrl}/app/${assessment.applicationRef}/assessment/${assessment.taskId}`;
-  return finding?.checkId
-    ? assessmentUrl + `#finding-${finding.checkId}`
-    : assessmentUrl;
+  const rainierUrl = () => {
+    const assessmentUrl = `${labUrl}/app/${assessment.applicationRef}/assessment/${assessment.ref}`;
+    return finding?.checkId
+      ? `${assessmentUrl}/findings#finding-${finding.checkId}`
+      : assessmentUrl;
+  };
+
+  const classicUrl = () => {
+    const assessmentUrl = `${labUrl}/app/${assessment.applicationRef}/assessment/${assessment.taskId}`;
+    return finding?.checkId
+      ? `${assessmentUrl}#finding-${finding.checkId}`
+      : assessmentUrl;
+  };
+
+  return rainier ? rainierUrl() : classicUrl();
 };
 
 export function platformConfig(): PlatformConfig {
-  return {
-    token: core.getInput("platform_token"),
-    apiUrl: core.getInput("api_url"),
-    labApiUrl: core.getInput("lab_api_url"),
-    labUrl: core.getInput("lab_url"),
-  };
+  const labUrl = core.getInput("lab_url");
+  const uiType = core.getInput("lab_type").toLowerCase();
+  let rainier = true;
+  if (uiType) {
+    if (["classic", "rainier"].includes(uiType)) {
+      rainier = uiType === "rainier";
+    } else {
+      throw new ValueError('lab_type must be either "rainier" or "classic"');
+    }
+  }
+  return new PlatformConfig(
+    core.getInput("platform_token"),
+    core.getInput("api_url"),
+    core.getInput("lab_api_url"),
+    labUrl,
+    rainier
+  );
 }
 
 export async function outputToDependencies(
@@ -85,9 +119,15 @@ export async function outputToSarif(
   report: PullReportResponse,
   keyParams: KeyParams,
   filter: Filter,
-  labUrl: string
+  platform: PlatformConfig
 ) {
   console.log("Converting NowSecure report to SARIF...");
-  const sarif = await convertToSarif(report, keyParams, filter, labUrl);
+  const sarif = await convertToSarif(
+    report,
+    keyParams,
+    filter,
+    platform.labUrl,
+    platform.rainier
+  );
   await writeFile("NowSecure.sarif", JSON.stringify(sarif));
 }

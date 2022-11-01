@@ -10,11 +10,12 @@ import type {
   PullReportResponse,
 } from "./types/platform";
 import { version } from "./nowsecure-version";
-import { sleep } from "./utils";
+import { PlatformConfig, sleep } from "./utils";
 
 export const USER_AGENT = `NowSecure GitHub Action/${version}`;
 export const DEFAULT_API_URL = "https://api.nowsecure.com";
 export const DEFAULT_LAB_API_URL = "https://lab-api.nowsecure.com";
+export const DEFAULT_LAB_UI_URL = "https://app.nowsecure.com";
 
 /**
  * GraphQL request to check if baseline limit has been reached.
@@ -118,11 +119,20 @@ export class NowSecure {
   #apiUrl: string;
   #labApiUrl: string;
 
+  constructor(platform: PlatformConfig);
+  constructor(platformToken: string, apiUrl?: string, labApiUrl?: string);
   constructor(
-    platformToken: string,
+    platformOrToken: string | PlatformConfig,
     apiUrl: string = DEFAULT_API_URL,
     labApiUrl: string = DEFAULT_LAB_API_URL
   ) {
+    let platformToken: string;
+    if (typeof platformOrToken == "object") {
+      platformToken = platformOrToken.token;
+      apiUrl = platformOrToken.apiUrl;
+      labApiUrl = platformOrToken.labApiUrl;
+    }
+
     this.#apiUrl = apiUrl;
     this.#labApiUrl = labApiUrl;
     this.#client = new http.HttpClient(USER_AGENT, undefined, {

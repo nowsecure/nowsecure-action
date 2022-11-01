@@ -22,9 +22,10 @@ import {
   findingKey,
   DEFAULT_KEY_PARAMS,
   JSONObject,
+  assessmentLink,
 } from "./utils";
 
-const DEFAULT_LAB_URL = "https://lab.nowsecure.com";
+const DEFAULT_LAB_URL = "https://app.nowsecure.com";
 
 const SARIF_SCHEMA_URL =
   "https://raw.githubusercontent.com/schemastore/schemastore/master/src/schemas/json/sarif-2.1.0-rtm.5.json";
@@ -71,10 +72,10 @@ export async function convertToSarif(
   data: PullReportResponse,
   keyParams: KeyParams = DEFAULT_KEY_PARAMS,
   filter: Filter = DEFAULT_SARIF_FILTER,
-  labUrl: string = DEFAULT_LAB_URL
+  labUrl: string = DEFAULT_LAB_URL,
+  rainier: boolean = true
 ): Promise<Log> {
   const assessment = data.data.auto.assessments[0];
-  const { taskId, applicationRef } = assessment;
   const report = assessment.report;
 
   if (!report) {
@@ -192,7 +193,7 @@ export async function convertToSarif(
     rules.push({
       id: findingKey(assessment, finding, keyParams),
       name: finding.title,
-      helpUri: `${labUrl}/app/${applicationRef}/assessment/${taskId}#finding-${finding.key}`,
+      helpUri: assessmentLink(labUrl, rainier, assessment, finding),
       shortDescription: {
         text: finding.title,
       },

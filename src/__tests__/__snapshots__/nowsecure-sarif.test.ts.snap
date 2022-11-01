@@ -52,7 +52,7 @@ This is an example recommendation.
 ",
                 "text": "NowSecure only provides recommendations in a Markdown format.",
               },
-              "helpUri": "https://lab.nowsecure.com/app/00000000-0000-0000-0000-000000000000/assessment/1#finding-example_check",
+              "helpUri": "https://app.nowsecure.com/app/00000000-0000-0000-0000-000000000000/assessment/00000000-0000-0000-0000-000000000001/findings#finding-example_check",
               "id": "5e63241d7f766e1697c5a450f8178a53bdcc66af0d5bcc73775749a044896c7e",
               "name": "This Is An Example Check",
               "properties": Object {
@@ -131,7 +131,7 @@ This is an example recommendation.
 ",
                 "text": "NowSecure only provides recommendations in a Markdown format.",
               },
-              "helpUri": "https://lab.nowsecure.com/app/00000000-0000-0000-0000-000000000000/assessment/1#finding-example_check",
+              "helpUri": "https://app.nowsecure.com/app/00000000-0000-0000-0000-000000000000/assessment/00000000-0000-0000-0000-000000000001/findings#finding-example_check",
               "id": "5e63241d7f766e1697c5a450f8178a53bdcc66af0d5bcc73775749a044896c7e",
               "name": "This Is An Example Check",
               "properties": Object {
@@ -210,7 +210,7 @@ This is an example recommendation.
 ",
                 "text": "NowSecure only provides recommendations in a Markdown format.",
               },
-              "helpUri": "https://lab.nowsecure.com/app/00000000-0000-0000-0000-000000000000/assessment/1#finding-example_check",
+              "helpUri": "https://app.nowsecure.com/app/00000000-0000-0000-0000-000000000000/assessment/00000000-0000-0000-0000-000000000001/findings#finding-example_check",
               "id": "5e63241d7f766e1697c5a450f8178a53bdcc66af0d5bcc73775749a044896c7e",
               "name": "This Is An Example Check",
               "properties": Object {
@@ -289,7 +289,7 @@ This is an example recommendation.
 ",
                 "text": "NowSecure only provides recommendations in a Markdown format.",
               },
-              "helpUri": "https://lab.nowsecure.com/app/00000000-0000-0000-0000-000000000000/assessment/1#finding-example_check",
+              "helpUri": "https://app.nowsecure.com/app/00000000-0000-0000-0000-000000000000/assessment/00000000-0000-0000-0000-000000000001/findings#finding-example_check",
               "id": "5e63241d7f766e1697c5a450f8178a53bdcc66af0d5bcc73775749a044896c7e",
               "name": "This Is An Example Check",
               "properties": Object {

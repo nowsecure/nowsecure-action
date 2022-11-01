@@ -7,7 +7,7 @@
 import * as core from "@actions/core";
 import { Finding, Assessment } from "./types/platform";
 import { SummaryTableRow } from "@actions/core/lib/summary";
-import { assessmentLink } from "./utils";
+import { PlatformConfig } from "./utils";
 import { IssueAction, IssueActionType } from "./nowsecure-issues";
 
 export type FindingToIssueMap = {
@@ -18,24 +18,28 @@ export type SummaryType = "short" | "long" | string;
 
 export function githubJobSummary(
   which: SummaryType,
-  labUrl: string,
+  platform: PlatformConfig,
   assessment: Assessment,
   findingToIssueMap: FindingToIssueMap
 ) {
   switch (which) {
     case "short":
-      return githubJobSummaryShort(labUrl, assessment, findingToIssueMap);
+      return githubJobSummaryShort(platform, assessment, findingToIssueMap);
     case "long":
-      return githubJobSummaryLong(labUrl, assessment, findingToIssueMap);
+      return githubJobSummaryLong(platform, assessment, findingToIssueMap);
   }
 }
 
 export function githubJobSummaryLong(
-  labUrl: string,
+  platform: PlatformConfig,
   assessment: Assessment,
   findingToIssueMap: FindingToIssueMap
 ) {
-  const findingsTable = getFindingsTable(labUrl, assessment, findingToIssueMap);
+  const findingsTable = getFindingsTable(
+    platform,
+    assessment,
+    findingToIssueMap
+  );
   const dependenciesTable = getDependenciesTable(assessment);
 
   return core.summary
@@ -54,17 +58,17 @@ export function githubJobSummaryLong(
     )
     .addTable(dependenciesTable)
     .addRaw("</details>", true)
-    .addLink("View NowSecure Report", assessmentLink(labUrl, assessment));
+    .addLink("View NowSecure Report", platform.assessmentLink(assessment));
 }
 
 function riskLine(
-  labUrl: string,
+  platform: PlatformConfig,
   assessment: Assessment,
   finding: Finding,
   findingToIssueMap: FindingToIssueMap
 ) {
   const { key, title } = finding;
-  const findingUrl = assessmentLink(labUrl, assessment, finding);
+  const findingUrl = platform.assessmentLink(assessment, finding);
   let line = `- ${key} - <a href="${findingUrl}">${title}</a>`;
   const issue = findingToIssueMap?.[key]?.existingIssue;
   if (issue) {
@@ -76,7 +80,7 @@ function riskLine(
 }
 
 export function githubJobSummaryShort(
-  labUrl: string,
+  platform: PlatformConfig,
   assessment: Assessment,
   findingToIssueMap: FindingToIssueMap
 ) {
@@ -109,7 +113,7 @@ export function githubJobSummaryShort(
   const formatDetail = (findings: Finding[]) =>
     findings
       .map((finding) =>
-        riskLine(labUrl, assessment, finding, findingToIssueMap)
+        riskLine(platform, assessment, finding, findingToIssueMap)
       )
       .join("<br>");
 
@@ -122,7 +126,7 @@ export function githubJobSummaryShort(
     .addTable([testResultHeader, ...results])
     .addDetails("Risks", formatDetail(findingsGroupedBy.fail))
     .addSeparator()
-    .addLink("View NowSecure Report", assessmentLink(labUrl, assessment));
+    .addLink("View NowSecure Report", platform.assessmentLink(assessment));
 }
 
 export async function githubWriteJobSummary(): Promise<void> {
@@ -170,7 +174,7 @@ function issueStatus(finding: Finding, findingToIssueMap: FindingToIssueMap) {
 }
 
 export function getFindingsTable(
-  labUrl: string,
+  platform: PlatformConfig,
   assessment: Assessment,
   findingToIssueMap: FindingToIssueMap
 ): SummaryTableRow[] {
@@ -198,7 +202,7 @@ export function getFindingsTable(
       const category = check.issue?.category ?? findingCategory ?? "misc";
       const titleText =
         check.issue?.title ?? findingTitle ?? "See report for details";
-      const findingLink = assessmentLink(labUrl, assessment, finding);
+      const findingLink = platform.assessmentLink(assessment, finding);
       const title = `<a href="${findingLink}">${titleText}</a>`;
       const row = [key, mark, category, title];
       if (findingToIssueMap) {

@@ -54,19 +54,14 @@ const getRepo = () => {
   return new GitHubRepo(repoOwner, repoName, core.getInput("github_token"));
 };
 
-const getNowSecure = () => {
-  const platform = platformConfig();
-  return new NowSecure(platform.token, platform.apiUrl, platform.labApiUrl);
-};
-
 export async function run() {
   const config = new NsConfig(core.getInput("config_path"));
   const configName = core.getInput("config");
 
   const repo = getRepo();
-  const ns = getNowSecure();
+  const platform = platformConfig();
+  const ns = new NowSecure(platform);
 
-  const baseUrl = core.getInput("lab_url");
   const reportId = core.getInput("report_id");
   console.log(`Fetching NowSecure report with ID: ${reportId}`);
 
@@ -105,7 +100,7 @@ ${nsIssueTag(assessment, finding, jobConfig.key)}
       assessment,
       finding,
       linkBlock,
-      baseUrl,
+      platform,
       options
     );
     return repo.createIssue({ title, body });
@@ -156,7 +151,7 @@ ${nsIssueTag(assessment, finding, jobConfig.key)}
   }
 
   if (jobConfig.summary !== "none") {
-    githubJobSummary(jobConfig.summary, baseUrl, assessment, issueMap);
+    githubJobSummary(jobConfig.summary, platform, assessment, issueMap);
     await githubWriteJobSummary();
   }
 }

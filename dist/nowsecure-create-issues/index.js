@@ -36428,7 +36428,6 @@ exports.RECOMMENDATION_TEMPLATE = `{% if recommendation -%}
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.renderFinding = exports.PLAIN_SEPARATOR = exports.LINE_SEPARATOR = void 0;
 const liquidjs_1 = __nccwpck_require__(3385);
-const utils_1 = __nccwpck_require__(6252);
 const index_1 = __nccwpck_require__(2712);
 const MD_ESCAPE = /([`|\\])/g;
 const escapeMarkdown = (text) => text ? text.replace(MD_ESCAPE, "\\$&") : "";
@@ -36515,7 +36514,7 @@ function getEvidence(finding, maxRows) {
 }
 exports.LINE_SEPARATOR = "\n\n---\n\n";
 exports.PLAIN_SEPARATOR = "\n\n";
-function renderFinding(assessment, finding, linkBlock, baseUrl, options) {
+function renderFinding(assessment, finding, linkBlock, platformConfig, options) {
     var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m;
     const { maxRows = 0, separator = exports.LINE_SEPARATOR, sections = index_1.SECTIONS, templates = index_1.TEMPLATES, } = options || {};
     const engine = new liquidjs_1.Liquid({ jsTruthy: true });
@@ -36523,7 +36522,7 @@ function renderFinding(assessment, finding, linkBlock, baseUrl, options) {
     const platform = assessment.platformType;
     const codeSamples = (((_b = (_a = finding.check) === null || _a === void 0 ? void 0 : _a.issue) === null || _b === void 0 ? void 0 : _b.codeSamples) || []).filter((sample) => matchesPlatform(sample, platform));
     const guidanceLinks = (((_d = (_c = finding.check) === null || _c === void 0 ? void 0 : _c.issue) === null || _d === void 0 ? void 0 : _d.guidanceLinks) || []).filter((link) => matchesPlatform(link, platform));
-    const asmtLink = (0, utils_1.assessmentLink)(baseUrl, assessment, finding);
+    const asmtLink = platformConfig.assessmentLink(assessment, finding);
     const values = {
         platform: assessment.platformType,
         package: assessment.packageKey,
@@ -36652,13 +36651,14 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
 };
 var _NowSecure_client, _NowSecure_apiUrl, _NowSecure_labApiUrl;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.NowSecure = exports.DEFAULT_LAB_API_URL = exports.DEFAULT_API_URL = exports.USER_AGENT = void 0;
+exports.NowSecure = exports.DEFAULT_LAB_UI_URL = exports.DEFAULT_LAB_API_URL = exports.DEFAULT_API_URL = exports.USER_AGENT = void 0;
 const http = __importStar(__nccwpck_require__(9925));
 const nowsecure_version_1 = __nccwpck_require__(1328);
 const utils_1 = __nccwpck_require__(6252);
 exports.USER_AGENT = `NowSecure GitHub Action/${nowsecure_version_1.version}`;
 exports.DEFAULT_API_URL = "https://api.nowsecure.com";
 exports.DEFAULT_LAB_API_URL = "https://lab-api.nowsecure.com";
+exports.DEFAULT_LAB_UI_URL = "https://app.nowsecure.com";
 /**
  * GraphQL request to check if baseline limit has been reached.
  *
@@ -36755,10 +36755,16 @@ const platformGql = (reportId) => `{
   }
 }`;
 class NowSecure {
-    constructor(platformToken, apiUrl = exports.DEFAULT_API_URL, labApiUrl = exports.DEFAULT_LAB_API_URL) {
+    constructor(platformOrToken, apiUrl = exports.DEFAULT_API_URL, labApiUrl = exports.DEFAULT_LAB_API_URL) {
         _NowSecure_client.set(this, void 0);
         _NowSecure_apiUrl.set(this, void 0);
         _NowSecure_labApiUrl.set(this, void 0);
+        let platformToken;
+        if (typeof platformOrToken == "object") {
+            platformToken = platformOrToken.token;
+            apiUrl = platformOrToken.apiUrl;
+            labApiUrl = platformOrToken.labApiUrl;
+        }
         __classPrivateFieldSet(this, _NowSecure_apiUrl, apiUrl, "f");
         __classPrivateFieldSet(this, _NowSecure_labApiUrl, labApiUrl, "f");
         __classPrivateFieldSet(this, _NowSecure_client, new http.HttpClient(exports.USER_AGENT, undefined, {
@@ -36916,18 +36922,14 @@ const getRepo = () => {
     const repoOwner = core.getInput("repo_owner") || github.context.repo.owner;
     return new github_issues_1.GitHubRepo(repoOwner, repoName, core.getInput("github_token"));
 };
-const getNowSecure = () => {
-    const platform = (0, utils_1.platformConfig)();
-    return new nowsecure_client_1.NowSecure(platform.token, platform.apiUrl, platform.labApiUrl);
-};
 function run() {
     var _a, _b;
     return __awaiter(this, void 0, void 0, function* () {
         const config = new utils_1.NsConfig(core.getInput("config_path"));
         const configName = core.getInput("config");
         const repo = getRepo();
-        const ns = getNowSecure();
-        const baseUrl = core.getInput("lab_url");
+        const platform = (0, utils_1.platformConfig)();
+        const ns = new nowsecure_client_1.NowSecure(platform);
         const reportId = core.getInput("report_id");
         console.log(`Fetching NowSecure report with ID: ${reportId}`);
         const jobConfig = config.getConfig(configName, "issues");
@@ -36952,7 +36954,7 @@ ${(0, nowsecure_issues_1.nsIssueTag)(assessment, finding, jobConfig.key)}
             const options = {
                 maxRows: jobConfig.maxRows,
             };
-            const { title, body } = (0, issue_templates_1.renderFinding)(assessment, finding, linkBlock, baseUrl, options);
+            const { title, body } = (0, issue_templates_1.renderFinding)(assessment, finding, linkBlock, platform, options);
             return repo.createIssue({ title, body });
         };
         // pull all the issues we have to determine dupes and to re-open issues.
@@ -36984,7 +36986,7 @@ ${(0, nowsecure_issues_1.nsIssueTag)(assessment, finding, jobConfig.key)}
             }
         }
         if (jobConfig.summary !== "none") {
-            (0, nowsecure_summary_1.githubJobSummary)(jobConfig.summary, baseUrl, assessment, issueMap);
+            (0, nowsecure_summary_1.githubJobSummary)(jobConfig.summary, platform, assessment, issueMap);
             yield (0, nowsecure_summary_1.githubWriteJobSummary)();
         }
     });
@@ -37144,7 +37146,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.convertToSarif = void 0;
 const ripgrep_js_1 = __nccwpck_require__(8907);
 const utils_1 = __nccwpck_require__(6252);
-const DEFAULT_LAB_URL = "https://lab.nowsecure.com";
+const DEFAULT_LAB_URL = "https://app.nowsecure.com";
 const SARIF_SCHEMA_URL = "https://raw.githubusercontent.com/schemastore/schemastore/master/src/schemas/json/sarif-2.1.0-rtm.5.json";
 /**
  * Convert NowSecure severity to a SARIF notification level.
@@ -37185,10 +37187,9 @@ function severityToScore(input) {
  * otherwise data may be missing, in which case the behavior of this function
  * is undefined.
  */
-function convertToSarif(data, keyParams = utils_1.DEFAULT_KEY_PARAMS, filter = utils_1.DEFAULT_SARIF_FILTER, labUrl = DEFAULT_LAB_URL) {
+function convertToSarif(data, keyParams = utils_1.DEFAULT_KEY_PARAMS, filter = utils_1.DEFAULT_SARIF_FILTER, labUrl = DEFAULT_LAB_URL, rainier = true) {
     return __awaiter(this, void 0, void 0, function* () {
         const assessment = data.data.auto.assessments[0];
-        const { taskId, applicationRef } = assessment;
         const report = assessment.report;
         if (!report) {
             throw new Error("No report data");
@@ -37283,7 +37284,7 @@ function convertToSarif(data, keyParams = utils_1.DEFAULT_KEY_PARAMS, filter = u
             rules.push({
                 id: (0, utils_1.findingKey)(assessment, finding, keyParams),
                 name: finding.title,
-                helpUri: `${labUrl}/app/${applicationRef}/assessment/${taskId}#finding-${finding.key}`,
+                helpUri: (0, utils_1.assessmentLink)(labUrl, rainier, assessment, finding),
                 shortDescription: {
                     text: finding.title,
                 },
@@ -37623,19 +37624,18 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getFindingsTable = exports.getDependenciesTable = exports.githubWriteJobSummary = exports.githubJobSummaryShort = exports.githubJobSummaryLong = exports.githubJobSummary = void 0;
 const core = __importStar(__nccwpck_require__(2186));
-const utils_1 = __nccwpck_require__(6252);
 const nowsecure_issues_1 = __nccwpck_require__(783);
-function githubJobSummary(which, labUrl, assessment, findingToIssueMap) {
+function githubJobSummary(which, platform, assessment, findingToIssueMap) {
     switch (which) {
         case "short":
-            return githubJobSummaryShort(labUrl, assessment, findingToIssueMap);
+            return githubJobSummaryShort(platform, assessment, findingToIssueMap);
         case "long":
-            return githubJobSummaryLong(labUrl, assessment, findingToIssueMap);
+            return githubJobSummaryLong(platform, assessment, findingToIssueMap);
     }
 }
 exports.githubJobSummary = githubJobSummary;
-function githubJobSummaryLong(labUrl, assessment, findingToIssueMap) {
-    const findingsTable = getFindingsTable(labUrl, assessment, findingToIssueMap);
+function githubJobSummaryLong(platform, assessment, findingToIssueMap) {
+    const findingsTable = getFindingsTable(platform, assessment, findingToIssueMap);
     const dependenciesTable = getDependenciesTable(assessment);
     return core.summary
         .addImage("https://www.nowsecure.com/wp-content/uploads/2022/03/Logo-Nowsecure.png", "NowSecure Logo")
@@ -37645,13 +37645,13 @@ function githubJobSummaryLong(labUrl, assessment, findingToIssueMap) {
         .addRaw(`<details${dependenciesTable.length <= 11 ? " open" : ""}><summary>Dependencies (click to expand)</summary>`, true)
         .addTable(dependenciesTable)
         .addRaw("</details>", true)
-        .addLink("View NowSecure Report", (0, utils_1.assessmentLink)(labUrl, assessment));
+        .addLink("View NowSecure Report", platform.assessmentLink(assessment));
 }
 exports.githubJobSummaryLong = githubJobSummaryLong;
-function riskLine(labUrl, assessment, finding, findingToIssueMap) {
+function riskLine(platform, assessment, finding, findingToIssueMap) {
     var _a;
     const { key, title } = finding;
-    const findingUrl = (0, utils_1.assessmentLink)(labUrl, assessment, finding);
+    const findingUrl = platform.assessmentLink(assessment, finding);
     let line = `- ${key} - <a href="${findingUrl}">${title}</a>`;
     const issue = (_a = findingToIssueMap === null || findingToIssueMap === void 0 ? void 0 : findingToIssueMap[key]) === null || _a === void 0 ? void 0 : _a.existingIssue;
     if (issue) {
@@ -37659,7 +37659,7 @@ function riskLine(labUrl, assessment, finding, findingToIssueMap) {
     }
     return line;
 }
-function githubJobSummaryShort(labUrl, assessment, findingToIssueMap) {
+function githubJobSummaryShort(platform, assessment, findingToIssueMap) {
     const grouping = { pass: [], fail: [] };
     const findingsGroupedBy = assessment.report.findings.reduce((acc, finding) => {
         var _a;
@@ -37682,7 +37682,7 @@ function githubJobSummaryShort(labUrl, assessment, findingToIssueMap) {
         [":bricks: Dependencies", assessment.deputy.components.length.toString()],
     ];
     const formatDetail = (findings) => findings
-        .map((finding) => riskLine(labUrl, assessment, finding, findingToIssueMap))
+        .map((finding) => riskLine(platform, assessment, finding, findingToIssueMap))
         .join("<br>");
     return core.summary
         .addImage("https://www.nowsecure.com/wp-content/uploads/2022/03/Logo-Nowsecure.png", "NowSecure Logo")
@@ -37690,7 +37690,7 @@ function githubJobSummaryShort(labUrl, assessment, findingToIssueMap) {
         .addTable([testResultHeader, ...results])
         .addDetails("Risks", formatDetail(findingsGroupedBy.fail))
         .addSeparator()
-        .addLink("View NowSecure Report", (0, utils_1.assessmentLink)(labUrl, assessment));
+        .addLink("View NowSecure Report", platform.assessmentLink(assessment));
 }
 exports.githubJobSummaryShort = githubJobSummaryShort;
 function githubWriteJobSummary() {
@@ -37735,7 +37735,7 @@ function issueStatus(finding, findingToIssueMap) {
     }
     return `${text}<a href="${issue.html_url}">${issue.number.toString()}</a>`;
 }
-function getFindingsTable(labUrl, assessment, findingToIssueMap) {
+function getFindingsTable(platform, assessment, findingToIssueMap) {
     const header = [
         { data: "Checks", header: true },
         { data: "Pass", header: true },
@@ -37753,7 +37753,7 @@ function getFindingsTable(labUrl, assessment, findingToIssueMap) {
         const mark = affected ? ":red_circle:" : ":white_check_mark:";
         const category = (_c = (_b = (_a = check.issue) === null || _a === void 0 ? void 0 : _a.category) !== null && _b !== void 0 ? _b : findingCategory) !== null && _c !== void 0 ? _c : "misc";
         const titleText = (_f = (_e = (_d = check.issue) === null || _d === void 0 ? void 0 : _d.title) !== null && _e !== void 0 ? _e : findingTitle) !== null && _f !== void 0 ? _f : "See report for details";
-        const findingLink = (0, utils_1.assessmentLink)(labUrl, assessment, finding);
+        const findingLink = platform.assessmentLink(assessment, finding);
         const title = `<a href="${findingLink}">${titleText}</a>`;
         const row = [key, mark, category, title];
         if (findingToIssueMap) {
@@ -37820,11 +37820,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.outputToSarif = exports.outputToDependencies = exports.platformConfig = exports.assessmentLink = exports.sleep = void 0;
+exports.outputToSarif = exports.outputToDependencies = exports.platformConfig = exports.assessmentLink = exports.PlatformConfig = exports.sleep = void 0;
 const fs_1 = __nccwpck_require__(7147);
 const core = __importStar(__nccwpck_require__(2186));
 const nowsecure_sarif_1 = __nccwpck_require__(9475);
 const nowsecure_snapshot_1 = __nccwpck_require__(2827);
+const errors_1 = __nccwpck_require__(2579);
+const nowsecure_client_1 = __nccwpck_require__(4619);
 const { writeFile } = fs_1.promises;
 /** Promisified setTimeout */
 function sleep(milliseconds) {
@@ -37833,20 +37835,58 @@ function sleep(milliseconds) {
     });
 }
 exports.sleep = sleep;
-const assessmentLink = (labUrl, assessment, finding) => {
-    const assessmentUrl = `${labUrl}/app/${assessment.applicationRef}/assessment/${assessment.taskId}`;
-    return (finding === null || finding === void 0 ? void 0 : finding.checkId)
-        ? assessmentUrl + `#finding-${finding.checkId}`
-        : assessmentUrl;
+class PlatformConfig {
+    constructor(
+    /** API token */
+    token, 
+    /** GraphQL server */
+    apiUrl = nowsecure_client_1.DEFAULT_API_URL, 
+    /** REST API (uploads) */
+    labApiUrl = nowsecure_client_1.DEFAULT_LAB_API_URL, 
+    /** UI address */
+    labUrl = nowsecure_client_1.DEFAULT_LAB_UI_URL, 
+    /** UI type */
+    rainier = true) {
+        this.token = token;
+        this.apiUrl = apiUrl;
+        this.labApiUrl = labApiUrl;
+        this.labUrl = labUrl;
+        this.rainier = rainier;
+    }
+    assessmentLink(assessment, finding) {
+        return (0, exports.assessmentLink)(this.labUrl, this.rainier, assessment, finding);
+    }
+}
+exports.PlatformConfig = PlatformConfig;
+const assessmentLink = (labUrl, rainier, assessment, finding) => {
+    const rainierUrl = () => {
+        const assessmentUrl = `${labUrl}/app/${assessment.applicationRef}/assessment/${assessment.ref}`;
+        return (finding === null || finding === void 0 ? void 0 : finding.checkId)
+            ? `${assessmentUrl}/findings#finding-${finding.checkId}`
+            : assessmentUrl;
+    };
+    const classicUrl = () => {
+        const assessmentUrl = `${labUrl}/app/${assessment.applicationRef}/assessment/${assessment.taskId}`;
+        return (finding === null || finding === void 0 ? void 0 : finding.checkId)
+            ? `${assessmentUrl}#finding-${finding.checkId}`
+            : assessmentUrl;
+    };
+    return rainier ? rainierUrl() : classicUrl();
 };
 exports.assessmentLink = assessmentLink;
 function platformConfig() {
-    return {
-        token: core.getInput("platform_token"),
-        apiUrl: core.getInput("api_url"),
-        labApiUrl: core.getInput("lab_api_url"),
-        labUrl: core.getInput("lab_url"),
-    };
+    const labUrl = core.getInput("lab_url");
+    const uiType = core.getInput("lab_type").toLowerCase();
+    let rainier = true;
+    if (uiType) {
+        if (["classic", "rainier"].includes(uiType)) {
+            rainier = uiType === "rainier";
+        }
+        else {
+            throw new errors_1.ValueError('lab_type must be either "rainier" or "classic"');
+        }
+    }
+    return new PlatformConfig(core.getInput("platform_token"), core.getInput("api_url"), core.getInput("lab_api_url"), labUrl, rainier);
 }
 exports.platformConfig = platformConfig;
 function outputToDependencies(report, context, githubCorrelator, githubToken) {
@@ -37865,10 +37905,10 @@ function outputToDependencies(report, context, githubCorrelator, githubToken) {
     });
 }
 exports.outputToDependencies = outputToDependencies;
-function outputToSarif(report, keyParams, filter, labUrl) {
+function outputToSarif(report, keyParams, filter, platform) {
     return __awaiter(this, void 0, void 0, function* () {
         console.log("Converting NowSecure report to SARIF...");
-        const sarif = yield (0, nowsecure_sarif_1.convertToSarif)(report, keyParams, filter, labUrl);
+        const sarif = yield (0, nowsecure_sarif_1.convertToSarif)(report, keyParams, filter, platform.labUrl, platform.rainier);
         yield writeFile("NowSecure.sarif", JSON.stringify(sarif));
     });
 }
