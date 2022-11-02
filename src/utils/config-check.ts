@@ -30,6 +30,7 @@ import {
   DEFAULT_ISSUES_FILTER,
   DEFAULT_SARIF_FILTER,
   isStringArray,
+  DEFAULT_FILTER,
 } from "./filter";
 import { DEFAULT_KEY_PARAMS, parseKeyConfig } from "./key";
 
@@ -73,7 +74,26 @@ const ALL_CONFIG_KEYS: string[] = Array.from(
 );
 
 /** Keys valid at the outer level */
-const OUTER_KEYS = FILTER_KEYS.concat(["filters", "configs", "key", "summary"]);
+const OUTER_KEYS = FILTER_KEYS.concat([
+  "filters",
+  "configs",
+  "key",
+  "summary",
+  "labels",
+]);
+
+export const DEFAULT_MAX_ROWS = 20;
+
+export const DEFAULT_LABELS: Labels = {
+  always: ["NowSecure"],
+  critical: [],
+  high: [],
+  medium: [],
+  low: [],
+  warning: [],
+  info: [],
+  categoryLabels: false,
+};
 
 /**
  * Loads the data from the .nsconfig.yml file
@@ -152,6 +172,7 @@ export class NsConfig {
     this.summary = this.parseSummary(rawConfig);
     this.parseFilters(rawConfig, checkIds);
     this.parseConfigs(rawConfig);
+    this.labels = this.parseLabels(rawConfig.labels, DEFAULT_LABELS);
   }
 
   private parseFilters(rawConfig: JSONObject, checkIds: string[] = null) {
@@ -203,7 +224,9 @@ export class NsConfig {
       if (typeof cfg.filter === "string") {
         cfg.filter = this.getRawFilter(cfg.filter);
       } else {
-        cfg.filter = parseFilter(cfg.filter);
+        if (checkObject(cfg.filter, FILTER_KEYS, "Filter")) {
+          cfg.filter = parseFilter(cfg.filter);
+        }
       }
     } else {
       cfg.filter = this.outerFilter;
@@ -288,14 +311,14 @@ export class NsConfig {
   ): IssuesJobConfig {
     rawConfig = rawConfig || {
       filter: this.outerFilter,
-      key: { ...DEFAULT_KEY_PARAMS },
       summary: this.summary,
+      key: null,
     };
     checkObject(rawConfig, ISSUE_CONFIG_KEYS, "Issues job configuration");
     const config: IssuesJobConfig = {
       filter: this.mergeFilters(DEFAULT_ISSUES_FILTER, rawConfig.filter),
       key: rawConfig.key || { ...this.keyParams },
-      labels: this.parseLabels(rawConfig.labels),
+      labels: this.parseLabels(rawConfig.labels, this.labels),
       maxRows: this.parseMaxRows(rawConfig.maxRows),
       summary: rawConfig.summary,
     };
@@ -305,8 +328,8 @@ export class NsConfig {
   private parseSarifConfig(rawConfig?: PartiallyParsedConfig): SarifJobConfig {
     rawConfig = rawConfig || {
       filter: this.outerFilter,
-      key: { ...DEFAULT_KEY_PARAMS },
       summary: this.summary,
+      key: null,
     };
     checkObject(rawConfig, SARIF_CONFIG_KEYS, "Sarif job configuration");
     const config: SarifJobConfig = {
@@ -317,7 +340,7 @@ export class NsConfig {
     return config;
   }
 
-  private parseLabels(labels?: JSONObject): Labels {
+  private parseLabels(labels: JSONObject, defaultValue: Labels): Labels {
     const checkList = (test: JSONType, listName: string): string[] => {
       if (test === undefined) {
         return [];
@@ -333,11 +356,11 @@ export class NsConfig {
     };
 
     if (labels === undefined) {
-      return { always: ["NowSecure"] };
+      return cloneDeep(defaultValue);
     }
 
     if (typeof labels === "string") {
-      return { always: [labels] };
+      return { ...cloneDeep(DEFAULT_LABELS), always: [labels] };
     }
 
     if (isArray(labels)) {
@@ -346,11 +369,11 @@ export class NsConfig {
           `labels must be a string, a list of strings or a Labels object`
         );
       }
-      return { always: labels };
+      return { ...cloneDeep(DEFAULT_LABELS), always: labels };
     }
 
     checkObject(labels, LABEL_KEYS, "labels");
-    const ret: Labels = {};
+    const ret: Labels = cloneDeep(DEFAULT_LABELS);
     for (const key of LABEL_LIST_KEYS) {
       if (key in labels) {
         ret[key] = checkList(labels[key], key);
@@ -368,7 +391,7 @@ export class NsConfig {
 
   private parseMaxRows(rows: JSONType) {
     if (rows === undefined) {
-      return 20;
+      return DEFAULT_MAX_ROWS;
     }
     if (typeof rows !== "number") {
       throw new TypeError("max-rows must be a number");
@@ -389,9 +412,11 @@ export class NsConfig {
   private filters: { [index: string]: Filter } = {};
 
   /** filter constructed from the outermost fields (backward compatibility) */
-  private outerFilter: Filter = {};
+  private outerFilter: Filter = cloneDeep(DEFAULT_FILTER);
 
-  private keyParams: KeyParams = { ...DEFAULT_KEY_PARAMS };
+  private keyParams: KeyParams = cloneDeep(DEFAULT_KEY_PARAMS);
 
   private summary: SummaryLevel = "short";
+
+  private labels: Labels = cloneDeep(DEFAULT_LABELS);
 }

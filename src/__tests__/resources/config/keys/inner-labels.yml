@@ -1,0 +1,4 @@
+configs:
+  fail:
+    labels:
+      not-permitted: true

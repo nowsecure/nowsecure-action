@@ -12,7 +12,9 @@
       "type": "object",
       "additionalProperties": { "$ref": "#/$defs/config" }
     },
-    "key": { "$ref": "#/$defs/keyparams" }
+    "key": { "$ref": "#/$defs/keyparams" },
+    "labels": { "$ref": "#/$defs/labels" },
+    "summary": { "$ref": "#/$defs/summary" }
   },
   "unevaluatedProperties": false,
   "$defs": {
@@ -38,13 +40,17 @@
         "filter": { "$ref": "#/$defs/filterorstring" },
         "key": { "$ref": "#/$defs/keyparams" },
         "labels": { "$ref": "#/$defs/labels" },
-        "max-rows": { "type": "integer", "minimum": 0 }
+        "summary": { "$ref": "#/$defs/summary" }
       },
       "unevaluatedProperties": false
     },
     "severity": {
       "type": "string",
       "enum": ["critical", "high", "medium", "low", "info"]
+    },
+    "summary": {
+      "type": "string",
+      "enum": ["none", "short", "long"]
     },
     "checklist": {
       "type": "array",

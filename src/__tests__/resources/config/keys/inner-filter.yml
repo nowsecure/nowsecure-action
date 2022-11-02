@@ -1,0 +1,4 @@
+configs:
+  fail:
+    filter:
+      not-permitted-key: true

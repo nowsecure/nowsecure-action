@@ -8,7 +8,16 @@ import fs from "fs";
 import path from "path";
 import { YAMLSyntaxError } from "yaml/util";
 
-import { InvalidFilterError, KeyError, NsConfig, ValueError } from "../utils";
+import {
+  DEFAULT_ISSUES_FILTER,
+  DEFAULT_LABELS,
+  DEFAULT_MAX_ROWS,
+  InvalidFilterError,
+  IssuesJobConfig,
+  KeyError,
+  NsConfig,
+  ValueError,
+} from "../utils";
 
 const CHECKS = [
   "check_1",
@@ -57,7 +66,10 @@ describe("config file validation", () => {
       const fullPath = path.resolve(directory, fileName);
       if (fs.statSync(fullPath).isFile()) {
         test(`${name}: ${fileName} throws ${errorClass.name}`, () => {
-          expect(() => new NsConfig(fullPath, CHECKS)).toThrow(errorClass);
+          expect(() => {
+            const config = new NsConfig(fullPath, CHECKS);
+            config.getConfig("fail", "issues");
+          }).toThrow(errorClass);
         });
       }
     });
@@ -77,6 +89,23 @@ describe("config file validation", () => {
     expect(() => new NsConfig(invalidFile, CHECKS)).toThrow(InvalidFilterError);
   });
 
+  test("all fields have the correct defaults", () => {
+    const defaultConfig: IssuesJobConfig = {
+      filter: DEFAULT_ISSUES_FILTER,
+      key: {
+        includePlatform: true,
+        includePackage: true,
+        v1platform: null,
+        v1package: null,
+      },
+      labels: DEFAULT_LABELS,
+      maxRows: DEFAULT_MAX_ROWS,
+      summary: "short",
+    };
+    const config = new NsConfig("", CHECKS);
+    expect(config.getConfig("", "issues")).toEqual(defaultConfig);
+  });
+
   test("parses a full config", () => {
     const validFile = path.join(
       __dirname,
@@ -84,6 +113,25 @@ describe("config file validation", () => {
       "config",
       "all-keys.yml"
     );
+
+    const allKeysDefault: IssuesJobConfig = {
+      filter: {
+        includeWarnings: true,
+        excludeChecks: ["check_1"],
+        includeChecks: ["check_2"],
+        severityFilter: ["critical", "high", "medium"],
+      },
+      key: {
+        includePlatform: false,
+        includePackage: false,
+        v1platform: "android",
+        v1package: "com.example.app",
+      },
+      labels: { ...DEFAULT_LABELS, always: ["one", "two"] },
+      maxRows: DEFAULT_MAX_ROWS,
+      summary: "long",
+    };
+
     const config = new NsConfig(validFile, CHECKS);
     const emptyConfig = config.getConfig("empty", "issues");
     const inlineConfig = config.getConfig("inline-filter", "issues");
@@ -91,8 +139,11 @@ describe("config file validation", () => {
     const keyConfig1 = config.getConfig("key-params-1", "issues");
     const keyConfig2 = config.getConfig("key-params-2", "issues");
     const summaryConfig = config.getConfig("summary", "issues");
+    const noConfig = config.getConfig("", "issues");
 
-    expect(emptyConfig.filter.excludeChecks).toEqual(["check_1"]);
+    expect(noConfig).toEqual(allKeysDefault);
+    expect(emptyConfig).toEqual(allKeysDefault);
+
     expect(inlineConfig.filter.excludeChecks).toEqual(["check_5"]);
     expect(refConfig.filter.excludeChecks).toEqual(["check_3"]);
 
@@ -107,8 +158,8 @@ describe("config file validation", () => {
     expect(keyConfig2.key.includePackage).toBe(true);
     expect(keyConfig2.key.v1platform).toBeNull();
     expect(keyConfig2.key.v1package).toBeNull();
+
     expect(summaryConfig.summary).toEqual("none");
-    expect(keyConfig2.summary).toEqual("long");
   });
 
   test("Parses labels config", () => {
@@ -122,9 +173,15 @@ describe("config file validation", () => {
 
     const getLabels = (name: string) => config.getConfig(name, "issues").labels;
 
-    expect(getLabels("empty")).toEqual({ always: ["NowSecure"] });
-    expect(getLabels("valid_string")).toEqual({ always: ["one"] });
-    expect(getLabels("valid_list")).toEqual({ always: ["one", "two"] });
+    expect(getLabels("empty")).toEqual(DEFAULT_LABELS);
+    expect(getLabels("valid_string")).toEqual({
+      ...DEFAULT_LABELS,
+      always: ["one"],
+    });
+    expect(getLabels("valid_list")).toEqual({
+      ...DEFAULT_LABELS,
+      always: ["one", "two"],
+    });
     expect(getLabels("all_keys")).toEqual({
       always: ["always"],
       info: ["info"],

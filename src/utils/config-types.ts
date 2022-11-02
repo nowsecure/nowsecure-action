@@ -22,10 +22,10 @@ export type SummaryLevel = "none" | "short" | "long";
 export const summaryLevels = ["none", "short", "long"];
 
 export interface Filter {
-  includeChecks?: string[];
-  excludeChecks?: string[];
-  severityFilter?: string[];
-  includeWarnings?: boolean;
+  includeChecks: string[];
+  excludeChecks: string[];
+  severityFilter: string[];
+  includeWarnings: boolean;
 }
 
 export interface KeyParams {
@@ -36,13 +36,13 @@ export interface KeyParams {
 }
 
 export interface LabelLists {
-  always?: string[];
-  info?: string[];
-  warning?: string[];
-  low?: string[];
-  medium?: string[];
-  high?: string[];
-  critical?: string[];
+  always: string[];
+  info: string[];
+  warning: string[];
+  low: string[];
+  medium: string[];
+  high: string[];
+  critical: string[];
 }
 
 export interface Labels extends LabelLists {

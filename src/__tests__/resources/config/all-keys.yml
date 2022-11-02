@@ -6,9 +6,15 @@ include-checks:
 minimum-severity: medium
 
 key:
-  platform: true
-  package: true
+  platform: false
+  package: false
   v1-key: android com.example.app
+
+labels:
+  - one
+  - two
+
+summary: long
 
 filters:
   valid-filter:
@@ -18,8 +24,6 @@ filters:
     include-checks:
       - check_4
     minimum-severity: info
-
-summary: long
 
 configs:
   empty: {}
