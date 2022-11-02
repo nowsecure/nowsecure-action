@@ -33,11 +33,7 @@ async function run() {
     const enableDependencies = core.getBooleanInput("enable_dependencies");
     const githubToken = core.getInput("github_token");
     const githubCorrelator = core.getInput("github_correlator");
-    const ns = new NowSecure(
-      platform.token,
-      platform.apiUrl,
-      platform.labApiUrl
-    );
+    const ns = new NowSecure(platform);
 
     const report = await ns.pollForReport(reportId, pollInterval);
 
@@ -51,18 +47,13 @@ async function run() {
     }
 
     if (enableSarif) {
-      await outputToSarif(
-        report,
-        jobConfig.key,
-        jobConfig.filter,
-        platform.labUrl
-      );
+      await outputToSarif(report, jobConfig.key, jobConfig.filter, platform);
     }
 
     if (jobConfig.summary !== "none") {
       githubJobSummary(
         jobConfig.summary,
-        platform.labUrl,
+        platform,
         report.data.auto.assessments[0],
         null
       );

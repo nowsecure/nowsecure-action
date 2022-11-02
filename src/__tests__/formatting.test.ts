@@ -3,6 +3,7 @@ import path from "path";
 import { Assessment } from "../types/platform";
 import { Templates, renderFinding, SectionList } from "../issue-templates";
 import { FindingRenderOptions } from "../issue-templates/render_finding";
+import { PlatformConfig } from "../utils";
 
 const assessment: Assessment = JSON.parse(
   fs.readFileSync(path.join(__dirname, "resources", "assessment.json"), "utf8")
@@ -34,7 +35,7 @@ describe("test formatting", () => {
       assessment,
       finding,
       "",
-      "http://localhost",
+      new PlatformConfig("platform_token"),
       options
     );
     expect(title).toEqual("title_section");
@@ -65,7 +66,7 @@ describe("test formatting", () => {
       assessment,
       finding,
       "",
-      "http://localhost",
+      new PlatformConfig("platform_token"),
       options
     );
     expect(title).toEqual("title_section");

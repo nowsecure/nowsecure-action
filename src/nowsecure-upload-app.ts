@@ -12,11 +12,7 @@ import { platformConfig } from "./utils";
 async function run() {
   try {
     const platform = platformConfig();
-    const ns = new NowSecure(
-      platform.token,
-      platform.apiUrl,
-      platform.labApiUrl
-    );
+    const ns = new NowSecure(platform);
     const groupId = core.getInput("group_id");
     const appFile = core.getInput("app_file");
     const licenseWorkaround = core.getBooleanInput("license_workaround");
