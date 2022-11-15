@@ -5,7 +5,7 @@ Object {
   "detector": Object {
     "name": "NowSecure",
     "url": "https://www.nowsecure.com/",
-    "version": "2.1.1",
+    "version": Any<String>,
   },
   "job": Object {
     "correlator": "",

@@ -32,6 +32,10 @@ describe("Snapshot conversion", () => {
     );
     const parsed = JSON.parse(data);
     const snapshot = convertToSnapshot(parsed as Deputy, "", context);
-    expect(snapshot).toMatchSnapshot();
+    expect(snapshot).toMatchSnapshot({
+      detector: {
+        version: expect.any(String),
+      }
+    });
   });
 });
