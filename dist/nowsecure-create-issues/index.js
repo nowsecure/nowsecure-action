@@ -36855,6 +36855,10 @@ class NowSecure {
             if (r.statusCode !== 200) {
                 throw new Error(`Report request failed with status ${r.statusCode}`);
             }
+            if (r.result.errors) {
+                const error = r.result.errors[0];
+                throw new Error(`Report request failed with error: ${error}`);
+            }
             const { total, limit, reached } = r.result.data.my.user.organization.usage.assessment;
             let limitReached = reached;
             if (licenseWorkaround) {
