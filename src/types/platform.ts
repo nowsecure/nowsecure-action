@@ -46,6 +46,9 @@ export interface UploadApplicationResponse {
  * and must be kept in sync.
  */
 export interface PullReportResponse {
+  errors?: {
+    message: string;
+  }[];
   data: {
     auto: {
       assessments: Assessment[];
