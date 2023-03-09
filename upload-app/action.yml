@@ -23,6 +23,9 @@ inputs:
     required: true
     description: "Workaround for improved license limit reached UX."
     default: true
+  version_string:
+    required: false
+    description: "Version string to associate with the build"
 runs:
   using: "node16"
   main: "../dist/nowsecure-upload-app/index.js"
