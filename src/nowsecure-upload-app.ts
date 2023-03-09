@@ -15,6 +15,7 @@ async function run() {
     const ns = new NowSecure(platform);
     const groupId = core.getInput("group_id");
     const appFile = core.getInput("app_file");
+    const versionString = core.getInput("version_string");
     const licenseWorkaround = core.getBooleanInput("license_workaround");
 
     const licenseValid = await ns.isLicenseValid(licenseWorkaround);
@@ -22,7 +23,11 @@ async function run() {
       throw new Error("Assessment limit reached");
     }
 
-    const details = await ns.submitBin(fs.createReadStream(appFile), groupId);
+    const details = await ns.submitBin(
+      fs.createReadStream(appFile),
+      groupId,
+      versionString
+    );
     const reportId = details.ref;
     console.log(`NowSecure assessment started. Report ID: ${reportId}`);
     core.setOutput("report_id", reportId);

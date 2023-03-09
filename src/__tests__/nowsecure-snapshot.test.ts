@@ -35,7 +35,7 @@ describe("Snapshot conversion", () => {
     expect(snapshot).toMatchSnapshot({
       detector: {
         version: expect.any(String),
-      }
+      },
     });
   });
 });

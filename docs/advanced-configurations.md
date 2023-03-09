@@ -95,7 +95,7 @@ configs:
 
 ## Configuring Finding IDs Generation
 
-The actions derive a persistent ID from the finding key, the platform and the package name.  This key is used to deduplicate alerts in GHAS. It can be controlled by the `key` element in `.nsconfig.yml`, declared either at the root or as part of a `config` element.
+The actions derive a persistent ID from the finding key, the platform and the package name. This key is used to deduplicate alerts in GHAS. It can be controlled by the `key` element in `.nsconfig.yml`, declared either at the root or as part of a `config` element.
 
 > Note: This is a change from the ID derivation in v2.1.1 and prior. To continue using the old key function, set the `v1-key` to the platform and package you are assessing.
 
@@ -103,8 +103,8 @@ For example:
 
 ```yml
 key:
-  platform: false                 # Don't use the platform when deriving an ID
-  package: false                  # Don't use the package when deriving an ID
+  platform: false # Don't use the platform when deriving an ID
+  package: false # Don't use the package when deriving an ID
   v1-key: android com.example.app # Use the old function for "com.example.app" on Android
 ```
 
