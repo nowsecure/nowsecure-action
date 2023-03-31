@@ -8,6 +8,7 @@ documented here.
 - [Per-app Filters](#per-app-filters)
 - [Configuring Finding IDs Generation](#configuring-finding-ids-generation)
 - [SBOM Generation](#sbom-generation)
+- [Custom Build Version Strings](custom-build-version-strings)
 - [Saving Action Minutes](#saving-action-minutes)
 
 ## Action Configuration
@@ -111,6 +112,25 @@ key:
 ## SBOM Generation
 
 To attach NowSecure SBOM data into Dependency Insights, in the `with:` section of the `convert-sarif` action, add `enable_dependencies: true`.
+
+## Custom Build Version Strings
+
+A custom version string can be attached to a build uploaded for analysis, overriding the version string contained in the package file. 
+The custom string will be displayed in the "Build" column of the application list in Platform.
+
+To set a custom build version, add a `version_string` to the `with:` section of the `upload-app` action. For example, to tag the build with the 
+hash of the commit that triggered the action:
+
+```yml
+- id: upload
+  name: NowSecure upload app
+  uses: nowsecure/nowsecure-action/upload-app@v3
+  with:
+    version_string: ${{ github.sha }}
+    platform_token: ${{ secrets.NS_TOKEN }}
+    app_file: app-insecure-debug.apk
+    group_id: "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
+```
 
 ## Saving Action Minutes
 
