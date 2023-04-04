@@ -116,7 +116,7 @@ To attach NowSecure SBOM data into Dependency Insights, in the `with:` section o
 ## Custom Build Version Strings
 
 A custom version string can be attached to a build uploaded for analysis, overriding the version string contained in the package file. 
-The custom string will be displayed in the "Build" column of the application list in Platform.
+The custom string will be displayed in the "Version" column of the application list in Platform.
 
 To set a custom build version, add a `version_string` to the `with:` section of the `upload-app` action. For example, to tag the build with the 
 hash of the commit that triggered the action:
