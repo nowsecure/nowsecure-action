@@ -38,10 +38,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Install Java
-        uses: actions/setup-java@v2
+        uses: actions/setup-java@v3
         with:
           java-version: "11"
           distribution: "adopt"
@@ -54,7 +54,7 @@ jobs:
         run: ./gradlew assembleDebug --stacktrace --no-daemon
 
       - name: Upload application
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: app
           path: ./app/build/outputs/apk/insecure/debug/${{ env.BUILD_OUTPUT_NAME }}
@@ -68,14 +68,14 @@ jobs:
     needs: build
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       # NOTE: ripgrep is required for line-of-code identification.
       - name: Install ripgrep
         run: sudo apt-get install -y ripgrep
 
       - name: Download application
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: app
 
@@ -94,7 +94,7 @@ jobs:
     permissions: write-all
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       # create issues. Uses the defaults: create issues in the current
       # repository and assign them to the repository owner
