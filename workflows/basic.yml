@@ -18,10 +18,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Install Java
-        uses: actions/setup-java@v2
+        uses: actions/setup-java@v3
         with:
           java-version: "11"
           distribution: "adopt"
@@ -34,7 +34,7 @@ jobs:
         run: ./gradlew assembleDebug --stacktrace --no-daemon
 
       - name: Upload application
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: app
           path: ./app/build/outputs/apk/insecure/debug/app-insecure-debug.apk
@@ -48,14 +48,14 @@ jobs:
     needs: build
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       # NOTE: ripgrep is required for line-of-code identification.
       - name: Install ripgrep
         run: sudo apt-get install -y ripgrep
 
       - name: Download application
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: app
 
@@ -77,7 +77,7 @@ jobs:
     needs: scan
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: NowSecure download report
         uses: nowsecure/nowsecure-action/convert-sarif@v3
@@ -89,12 +89,12 @@ jobs:
           group_id: "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
 
       - name: Upload SARIF file
-        uses: github/codeql-action/upload-sarif@v1
+        uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: NowSecure.sarif
 
       - name: Upload SARIF to artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: NowSecure.sarif
           path: ./NowSecure.sarif
