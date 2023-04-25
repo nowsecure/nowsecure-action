@@ -140,6 +140,7 @@ const file_command_1 = __nccwpck_require__(717);
 const utils_1 = __nccwpck_require__(5278);
 const os = __importStar(__nccwpck_require__(2037));
 const path = __importStar(__nccwpck_require__(1017));
+const uuid_1 = __nccwpck_require__(5840);
 const oidc_utils_1 = __nccwpck_require__(8041);
 /**
  * The code to exit an action
@@ -169,9 +170,20 @@ function exportVariable(name, val) {
     process.env[name] = convertedVal;
     const filePath = process.env['GITHUB_ENV'] || '';
     if (filePath) {
-        return file_command_1.issueFileCommand('ENV', file_command_1.prepareKeyValueMessage(name, val));
+        const delimiter = `ghadelimiter_${uuid_1.v4()}`;
+        // These should realistically never happen, but just in case someone finds a way to exploit uuid generation let's not allow keys or values that contain the delimiter.
+        if (name.includes(delimiter)) {
+            throw new Error(`Unexpected input: name should not contain the delimiter "${delimiter}"`);
+        }
+        if (convertedVal.includes(delimiter)) {
+            throw new Error(`Unexpected input: value should not contain the delimiter "${delimiter}"`);
+        }
+        const commandValue = `${name}<<${delimiter}${os.EOL}${convertedVal}${os.EOL}${delimiter}`;
+        file_command_1.issueCommand('ENV', commandValue);
     }
-    command_1.issueCommand('set-env', { name }, convertedVal);
+    else {
+        command_1.issueCommand('set-env', { name }, convertedVal);
+    }
 }
 exports.exportVariable = exportVariable;
 /**
@@ -189,7 +201,7 @@ exports.setSecret = setSecret;
 function addPath(inputPath) {
     const filePath = process.env['GITHUB_PATH'] || '';
     if (filePath) {
-        file_command_1.issueFileCommand('PATH', inputPath);
+        file_command_1.issueCommand('PATH', inputPath);
     }
     else {
         command_1.issueCommand('add-path', {}, inputPath);
@@ -229,10 +241,7 @@ function getMultilineInput(name, options) {
     const inputs = getInput(name, options)
         .split('\n')
         .filter(x => x !== '');
-    if (options && options.trimWhitespace === false) {
-        return inputs;
-    }
-    return inputs.map(input => input.trim());
+    return inputs;
 }
 exports.getMultilineInput = getMultilineInput;
 /**
@@ -265,12 +274,8 @@ exports.getBooleanInput = getBooleanInput;
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function setOutput(name, value) {
-    const filePath = process.env['GITHUB_OUTPUT'] || '';
-    if (filePath) {
-        return file_command_1.issueFileCommand('OUTPUT', file_command_1.prepareKeyValueMessage(name, value));
-    }
     process.stdout.write(os.EOL);
-    command_1.issueCommand('set-output', { name }, utils_1.toCommandValue(value));
+    command_1.issueCommand('set-output', { name }, value);
 }
 exports.setOutput = setOutput;
 /**
@@ -399,11 +404,7 @@ exports.group = group;
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function saveState(name, value) {
-    const filePath = process.env['GITHUB_STATE'] || '';
-    if (filePath) {
-        return file_command_1.issueFileCommand('STATE', file_command_1.prepareKeyValueMessage(name, value));
-    }
-    command_1.issueCommand('save-state', { name }, utils_1.toCommandValue(value));
+    command_1.issueCommand('save-state', { name }, value);
 }
 exports.saveState = saveState;
 /**
@@ -469,14 +470,13 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.prepareKeyValueMessage = exports.issueFileCommand = void 0;
+exports.issueCommand = void 0;
 // We use any as a valid input type
 /* eslint-disable @typescript-eslint/no-explicit-any */
 const fs = __importStar(__nccwpck_require__(7147));
 const os = __importStar(__nccwpck_require__(2037));
-const uuid_1 = __nccwpck_require__(5840);
 const utils_1 = __nccwpck_require__(5278);
-function issueFileCommand(command, message) {
+function issueCommand(command, message) {
     const filePath = process.env[`GITHUB_${command}`];
     if (!filePath) {
         throw new Error(`Unable to find environment variable for file command ${command}`);
@@ -488,22 +488,7 @@ function issueFileCommand(command, message) {
         encoding: 'utf8'
     });
 }
-exports.issueFileCommand = issueFileCommand;
-function prepareKeyValueMessage(key, value) {
-    const delimiter = `ghadelimiter_${uuid_1.v4()}`;
-    const convertedValue = utils_1.toCommandValue(value);
-    // These should realistically never happen, but just in case someone finds a
-    // way to exploit uuid generation let's not allow keys or values that contain
-    // the delimiter.
-    if (key.includes(delimiter)) {
-        throw new Error(`Unexpected input: name should not contain the delimiter "${delimiter}"`);
-    }
-    if (convertedValue.includes(delimiter)) {
-        throw new Error(`Unexpected input: value should not contain the delimiter "${delimiter}"`);
-    }
-    return `${key}<<${delimiter}${os.EOL}${convertedValue}${os.EOL}${delimiter}`;
-}
-exports.prepareKeyValueMessage = prepareKeyValueMessage;
+exports.issueCommand = issueCommand;
 //# sourceMappingURL=file-command.js.map
 
 /***/ }),
@@ -22020,9 +22005,13 @@ class NowSecure {
      * Upload an application binary stream to NowSecure Platform and return job
      * details. Throws an exception if an error occurs.
      */
-    submitBin(stream, groupId) {
+    submitBin(stream, groupId, version) {
         return __awaiter(this, void 0, void 0, function* () {
-            const r = yield __classPrivateFieldGet(this, _NowSecure_client, "f").sendStream("POST", `${__classPrivateFieldGet(this, _NowSecure_labApiUrl, "f")}/build/?group=${groupId}`, stream, {});
+            const base = `${__classPrivateFieldGet(this, _NowSecure_labApiUrl, "f")}/build/?group=${groupId}`;
+            const url = version
+                ? `${base}&version=${encodeURIComponent(version)}`
+                : base;
+            const r = yield __classPrivateFieldGet(this, _NowSecure_client, "f").sendStream("POST", url, stream, {});
             if (r.message.statusCode !== 200) {
                 throw new Error(`Application upload failed with status ${r.message.statusCode}`);
             }
@@ -22039,6 +22028,10 @@ class NowSecure {
             const r = yield __classPrivateFieldGet(this, _NowSecure_client, "f").getJson(`${__classPrivateFieldGet(this, _NowSecure_apiUrl, "f")}/graphql?query={${LICENSE_GQL}}`);
             if (r.statusCode !== 200) {
                 throw new Error(`Report request failed with status ${r.statusCode}`);
+            }
+            if (r.result.errors) {
+                const error = r.result.errors[0];
+                throw new Error(`Report request failed with error: ${error}`);
             }
             const { total, limit, reached } = r.result.data.my.user.organization.usage.assessment;
             let limitReached = reached;
@@ -22569,12 +22562,13 @@ function run() {
             const ns = new nowsecure_client_1.NowSecure(platform);
             const groupId = core.getInput("group_id");
             const appFile = core.getInput("app_file");
+            const versionString = core.getInput("version_string");
             const licenseWorkaround = core.getBooleanInput("license_workaround");
             const licenseValid = yield ns.isLicenseValid(licenseWorkaround);
             if (!licenseValid) {
                 throw new Error("Assessment limit reached");
             }
-            const details = yield ns.submitBin(fs_1.default.createReadStream(appFile), groupId);
+            const details = yield ns.submitBin(fs_1.default.createReadStream(appFile), groupId, versionString);
             const reportId = details.ref;
             console.log(`NowSecure assessment started. Report ID: ${reportId}`);
             core.setOutput("report_id", reportId);
@@ -22598,7 +22592,7 @@ run();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.version = void 0;
 // generated by genversion
-exports.version = "3.0.2";
+exports.version = "3.1.0";
 
 
 /***/ }),

@@ -194,14 +194,14 @@ export class NowSecure {
    */
   async submitBin(
     stream: NodeJS.ReadableStream,
-    groupId: string
+    groupId: string,
+    version?: string
   ): Promise<UploadApplicationResponse> {
-    const r = await this.#client.sendStream(
-      "POST",
-      `${this.#labApiUrl}/build/?group=${groupId}`,
-      stream,
-      {}
-    );
+    const base = `${this.#labApiUrl}/build/?group=${groupId}`;
+    const url = version
+      ? `${base}&version=${encodeURIComponent(version)}`
+      : base;
+    const r = await this.#client.sendStream("POST", url, stream, {});
 
     if (r.message.statusCode !== 200) {
       throw new Error(
@@ -224,6 +224,11 @@ export class NowSecure {
 
     if (r.statusCode !== 200) {
       throw new Error(`Report request failed with status ${r.statusCode}`);
+    }
+
+    if (r.result.errors) {
+      const error = r.result.errors[0];
+      throw new Error(`Report request failed with error: ${error}`);
     }
 
     const { total, limit, reached } =
