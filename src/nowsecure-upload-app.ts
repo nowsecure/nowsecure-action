@@ -17,6 +17,7 @@ async function run() {
     const appFile = core.getInput("app_file");
     const versionString = core.getInput("version_string");
     const licenseWorkaround = core.getBooleanInput("license_workaround");
+    const analysisType = core.getInput("analysis_type");
 
     const licenseValid = await ns.isLicenseValid(licenseWorkaround);
     if (!licenseValid) {
@@ -26,7 +27,8 @@ async function run() {
     const details = await ns.submitBin(
       fs.createReadStream(appFile),
       groupId,
-      versionString
+      versionString,
+      analysisType
     );
     const reportId = details.ref;
     console.log(`NowSecure assessment started. Report ID: ${reportId}`);

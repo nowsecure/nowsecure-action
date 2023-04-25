@@ -115,10 +115,10 @@ To attach NowSecure SBOM data into Dependency Insights, in the `with:` section o
 
 ## Custom Build Version Strings
 
-A custom version string can be attached to a build uploaded for analysis, overriding the version string contained in the package file. 
+A custom version string can be attached to a build uploaded for analysis, overriding the version string contained in the package file.
 The custom string will be displayed in the "Version" column of the application list in Platform.
 
-To set a custom build version, add a `version_string` to the `with:` section of the `upload-app` action. For example, to tag the build with the 
+To set a custom build version, add a `version_string` to the `with:` section of the `upload-app` action. For example, to tag the build with the
 hash of the commit that triggered the action:
 
 ```yml
@@ -127,6 +127,29 @@ hash of the commit that triggered the action:
   uses: nowsecure/nowsecure-action/upload-app@v3
   with:
     version_string: ${{ github.sha }}
+    platform_token: ${{ secrets.NS_TOKEN }}
+    app_file: app-insecure-debug.apk
+    group_id: "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
+```
+
+## Analysis type
+
+The `upload-app` can specify the type of analysis to perform if a full (static + dynamic) analysis is not required.
+
+To configure the analysis type, add an `analysis_type` input to the `with:` section of the `upload-app` action. Possible values are:
+
+- `full`: Perform a full (static + dynamic) analysis
+- `static`: Perform a static-only analysis.
+- `dependencies`: Surface only the SBOM dependency graph.
+
+Note that iOS builds for `static` and `sbom` analyses must not be encrypted.
+
+```yml
+- id: upload
+  name: NowSecure upload app
+  uses: nowsecure/nowsecure-action/upload-app@v3
+  with:
+    analysis_type: static
     platform_token: ${{ secrets.NS_TOKEN }}
     app_file: app-insecure-debug.apk
     group_id: "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"

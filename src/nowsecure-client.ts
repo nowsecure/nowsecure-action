@@ -195,12 +195,31 @@ export class NowSecure {
   async submitBin(
     stream: NodeJS.ReadableStream,
     groupId: string,
-    version?: string
+    version?: string,
+    analysisType?: string
   ): Promise<UploadApplicationResponse> {
-    const base = `${this.#labApiUrl}/build/?group=${groupId}`;
-    const url = version
-      ? `${base}&version=${encodeURIComponent(version)}`
-      : base;
+    const params: string[] = ["group=" + encodeURIComponent(groupId)];
+
+    if (version) {
+      params.push("version=" + encodeURIComponent(version));
+    }
+
+    if (analysisType) {
+      switch (analysisType) {
+        case "full":
+          break;
+        case "static":
+          params.push("analysisType=static");
+          break;
+        case "dependencies":
+          params.push("analysisType=sbom");
+          break;
+        default:
+          throw new Error(`Unknown analysis type "${analysisType}"`);
+      }
+    }
+
+    const url = `${this.#labApiUrl}/build/?${params.join("&")}`;
     const r = await this.#client.sendStream("POST", url, stream, {});
 
     if (r.message.statusCode !== 200) {

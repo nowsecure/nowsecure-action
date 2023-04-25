@@ -36820,12 +36820,27 @@ class NowSecure {
      * Upload an application binary stream to NowSecure Platform and return job
      * details. Throws an exception if an error occurs.
      */
-    submitBin(stream, groupId, version) {
+    submitBin(stream, groupId, version, analysisType) {
         return __awaiter(this, void 0, void 0, function* () {
-            const base = `${__classPrivateFieldGet(this, _NowSecure_labApiUrl, "f")}/build/?group=${groupId}`;
-            const url = version
-                ? `${base}&version=${encodeURIComponent(version)}`
-                : base;
+            const params = ["group=" + encodeURIComponent(groupId)];
+            if (version) {
+                params.push("version=" + encodeURIComponent(version));
+            }
+            if (analysisType) {
+                switch (analysisType) {
+                    case "full":
+                        break;
+                    case "static":
+                        params.push("analysisType=static");
+                        break;
+                    case "dependencies":
+                        params.push("analysisType=sbom");
+                        break;
+                    default:
+                        throw new Error(`Unknown analysis type "${analysisType}"`);
+                }
+            }
+            const url = `${__classPrivateFieldGet(this, _NowSecure_labApiUrl, "f")}/build/?${params.join("&")}`;
             const r = yield __classPrivateFieldGet(this, _NowSecure_client, "f").sendStream("POST", url, stream, {});
             if (r.message.statusCode !== 200) {
                 throw new Error(`Application upload failed with status ${r.message.statusCode}`);

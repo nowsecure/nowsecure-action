@@ -15,7 +15,7 @@ inputs:
     default: "https://lab-api.nowsecure.com"
   app_file:
     required: true
-    description: "Application binary to scan on NowSecure. Must be an Android or iOS application."
+    description: "Application binary to scan on NowSecure Platform. Must be an Android or iOS application."
   group_id:
     required: true
     description: "Group ID for the application in Platform."
@@ -26,6 +26,9 @@ inputs:
   version_string:
     required: false
     description: "Version string to associate with the build"
+  analysis_type:
+    required: false
+    description: The type of analysis to perform on the application (full, static or dependencies)
 runs:
   using: "node16"
   main: "../dist/nowsecure-upload-app/index.js"
