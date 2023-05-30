@@ -8,45 +8,53 @@ exports[`Snapshot conversion can perform conversion 1`] = `
     "version": Any<String>,
   },
   "job": {
-    "correlator": "",
-    "id": "0",
+    "correlator": "exampleJob",
+    "id": "42",
   },
   "manifests": {
-    "Payload/Example.app/ExampleFramework/Info.plist": {
+    "Payload/Example.app/ExampleFramework/Info.plist": Manifest {
       "name": "Payload/Example.app/ExampleFramework/Info.plist",
       "resolved": {
-        "ExamplePod3": {
+        "pkg:cocoapods/ExamplePod3@3.0.0": {
+          "dependencies": [],
           "package_url": "pkg:cocoapods/ExamplePod3@3.0.0",
           "relationship": "direct",
+          "scope": undefined,
         },
       },
     },
-    "Payload/Example.app/libexample.dylib": {
+    "Payload/Example.app/libexample.dylib": Manifest {
       "name": "Payload/Example.app/libexample.dylib",
       "resolved": {
-        "libexample": {
+        "pkg:generic/libexample@1.0.0": {
+          "dependencies": [],
           "package_url": "pkg:generic/libexample@1.0.0",
           "relationship": "direct",
+          "scope": undefined,
         },
       },
     },
-    "Podfile.lock": {
+    "Podfile.lock": Manifest {
       "name": "Podfile.lock",
       "resolved": {
-        "ExamplePod1": {
+        "pkg:cocoapods/ExamplePod1@1.0.0": {
+          "dependencies": [],
           "package_url": "pkg:cocoapods/ExamplePod1@1.0.0",
           "relationship": "direct",
+          "scope": undefined,
         },
-        "ExamplePod2": {
+        "pkg:cocoapods/ExamplePod2@2.0.0": {
+          "dependencies": [],
           "package_url": "pkg:cocoapods/ExamplePod2@2.0.0",
           "relationship": "direct",
+          "scope": undefined,
         },
       },
     },
   },
-  "ref": "",
+  "ref": "exampleRef",
   "scanned": "2000-01-01T00:00:00.000Z",
-  "sha": "",
+  "sha": Any<String>,
   "version": 0,
 }
 `;
