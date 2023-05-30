@@ -1,43 +1,43 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Snapshot conversion can perform conversion 1`] = `
-Object {
-  "detector": Object {
+{
+  "detector": {
     "name": "NowSecure",
     "url": "https://www.nowsecure.com/",
     "version": Any<String>,
   },
-  "job": Object {
+  "job": {
     "correlator": "",
     "id": "0",
   },
-  "manifests": Object {
-    "Payload/Example.app/ExampleFramework/Info.plist": Object {
+  "manifests": {
+    "Payload/Example.app/ExampleFramework/Info.plist": {
       "name": "Payload/Example.app/ExampleFramework/Info.plist",
-      "resolved": Object {
-        "ExamplePod3": Object {
+      "resolved": {
+        "ExamplePod3": {
           "package_url": "pkg:cocoapods/ExamplePod3@3.0.0",
           "relationship": "direct",
         },
       },
     },
-    "Payload/Example.app/libexample.dylib": Object {
+    "Payload/Example.app/libexample.dylib": {
       "name": "Payload/Example.app/libexample.dylib",
-      "resolved": Object {
-        "libexample": Object {
+      "resolved": {
+        "libexample": {
           "package_url": "pkg:generic/libexample@1.0.0",
           "relationship": "direct",
         },
       },
     },
-    "Podfile.lock": Object {
+    "Podfile.lock": {
       "name": "Podfile.lock",
-      "resolved": Object {
-        "ExamplePod1": Object {
+      "resolved": {
+        "ExamplePod1": {
           "package_url": "pkg:cocoapods/ExamplePod1@1.0.0",
           "relationship": "direct",
         },
-        "ExamplePod2": Object {
+        "ExamplePod2": {
           "package_url": "pkg:cocoapods/ExamplePod2@2.0.0",
           "relationship": "direct",
         },

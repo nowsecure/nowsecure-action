@@ -6,7 +6,7 @@
 
 import fs from "fs";
 import path from "path";
-import { YAMLSyntaxError } from "yaml/util";
+import { YAMLParseError } from "yaml";
 
 import {
   DEFAULT_ISSUES_FILTER,
@@ -47,7 +47,7 @@ describe("config file validation", () => {
       "config",
       "invalid-yaml.yml"
     );
-    expect(() => new NsConfig(invalidFile)).toThrow(YAMLSyntaxError);
+    expect(() => new NsConfig(invalidFile)).toThrow(YAMLParseError);
   });
 
   /**
