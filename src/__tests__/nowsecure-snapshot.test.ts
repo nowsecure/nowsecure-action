@@ -7,6 +7,7 @@
 import { promises } from "fs";
 import { convertToSnapshot } from "../nowsecure-snapshot";
 import type { Deputy } from "../types/deputy";
+import { Context } from "@actions/github/lib/context";
 import path from "path";
 
 const { readFile } = promises;
@@ -14,16 +15,14 @@ const { readFile } = promises;
 jest.useFakeTimers().setSystemTime(new Date("2000-01-01"));
 
 describe("Snapshot conversion", () => {
-  const context = {
-    sha: "",
-    ref: "",
-    job: "",
-    runId: 0,
-    repo: {
-      owner: "",
-      repo: "",
-    },
-  };
+  const context = new Context();
+  // Set in jest.config.js
+  context.sha = process.env.GITHUB_SHA;
+  context.ref = "exampleRef";
+  context.job = "exampleJob";
+  context.runId = 42;
+  context.repo.owner = "exampleOwner";
+  context.repo.repo = process.env.GITHUB_REPOSITORY;
 
   test("can perform conversion", async () => {
     const data = await readFile(
@@ -36,6 +35,7 @@ describe("Snapshot conversion", () => {
       detector: {
         version: expect.any(String),
       },
+      sha: expect.any(String),
     });
   });
 });

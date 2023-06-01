@@ -7,11 +7,7 @@
 import { promises } from "fs";
 import * as core from "@actions/core";
 import { convertToSarif } from "../nowsecure-sarif";
-import {
-  convertToSnapshot,
-  submitSnapshotData,
-  ActionContext,
-} from "../nowsecure-snapshot";
+import { convertToSnapshot } from "../nowsecure-snapshot";
 import type {
   Assessment,
   Finding,
@@ -24,6 +20,8 @@ import {
   DEFAULT_LAB_API_URL,
   DEFAULT_LAB_UI_URL,
 } from "../nowsecure-client";
+import type { Context } from "@actions/github/lib/context";
+import { submitSnapshot } from "@github/dependency-submission-toolkit";
 
 const { writeFile } = promises;
 
@@ -98,16 +96,15 @@ export function platformConfig(): PlatformConfig {
 
 export async function outputToDependencies(
   report: PullReportResponse,
-  context: ActionContext,
-  githubCorrelator: string,
-  githubToken: string
+  context: Context,
+  githubCorrelator: string
 ) {
   const deputy = report?.data?.auto?.assessments[0]?.deputy;
   if (deputy) {
     console.log("Converting NowSecure report to Snapshot format...");
     const snapshotData = convertToSnapshot(deputy, githubCorrelator, context);
     console.log("Uploading Snapshot data to GitHub...");
-    return submitSnapshotData(snapshotData, context, githubToken);
+    return submitSnapshot(snapshotData, context);
   } else {
     console.warn(
       "NowSecure did not find dependencies information for this report"

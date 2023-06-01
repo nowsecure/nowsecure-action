@@ -34,6 +34,7 @@
     "@actions/core": "1.10.0",
     "@actions/github": "5.1.1",
     "@actions/http-client": "2.1.0",
+    "@github/dependency-submission-toolkit": "1.2.10",
     "@octokit/action": "5.0.5",
     "liquidjs": "10.7.1",
     "lodash": "4.17.21",

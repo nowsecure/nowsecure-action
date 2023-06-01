@@ -38,12 +38,7 @@ async function run() {
     const report = await ns.pollForReport(reportId, pollInterval);
 
     if (enableDependencies) {
-      await outputToDependencies(
-        report,
-        github.context,
-        githubCorrelator,
-        githubToken
-      );
+      await outputToDependencies(report, github.context, githubCorrelator);
     }
 
     if (enableSarif) {
