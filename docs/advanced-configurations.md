@@ -111,7 +111,7 @@ key:
 
 ## SBOM Generation
 
-To attach NowSecure SBOM data into Dependency Insights, in the `with:` section of the `convert-sarif` action, add `enable_dependencies: true`.
+To attach NowSecure SBOM data into Dependency Insights, in the `with:` section of the `convert-sarif` action, add `enable_dependencies: true`. As well, the job requires the `contents: write` permission (under the `permissions:` key in the workflow-level or job-level).
 
 ## Custom Build Version Strings
 
