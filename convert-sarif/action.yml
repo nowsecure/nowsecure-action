@@ -11,6 +11,10 @@ inputs:
   github_token:
     required: false
     default: ${{ github.token }}
+  # Required for the Dependency Submission API
+  token:
+    required: false
+    default: ${{ github.token }}
   api_url:
     required: false
     description: "NowSecure GraphQL API endpoint."
