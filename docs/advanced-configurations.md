@@ -144,11 +144,11 @@ To configure the analysis type, add an `analysis_type` input to the `with:` sect
 
 If the input is not specified a full analysis will be run.
 
-Static-only and dependency-only analyses do not attempt to decrypt encrypted binaries as 
+Static-only and dependency-only analyses do not attempt to decrypt encrypted binaries as
 these analyses are intended to provide a rapid result for e.g. a CI/CD pipeline. An encrypted
 binary will fail to analyze.
 
-Please note: 
+Please note:
 The assessment status on NowSecure Platform UI does not reflect successful completion of
 static-only or dependencies-only analysis. The labels in the UI will be "Partial Results"
 and "Failed Dynamic Analysis" due to the lack of a dynamic analysis.
