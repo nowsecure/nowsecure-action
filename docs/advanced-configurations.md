@@ -109,7 +109,7 @@ key:
   v1-key: android com.example.app # Use the old function for "com.example.app" on Android
 ```
 
-## SBOM Generation
+## Dependency Insights Generation
 
 To attach NowSecure SBOM data into Dependency Insights, in the `with:` section of the `convert-sarif` action, add `enable_dependencies: true`. As well, the job requires the `contents: write` permission (under the `permissions:` key in the workflow-level or job-level).
 
@@ -134,15 +134,24 @@ hash of the commit that triggered the action:
 
 ## Analysis type
 
-The `upload-app` can specify the type of analysis to perform if a full (static + dynamic) analysis is not required.
+The `upload-app` action can specify the type of analysis to perform if a full (static + dynamic) analysis is not required.
 
 To configure the analysis type, add an `analysis_type` input to the `with:` section of the `upload-app` action. Possible values are:
 
-- `full`: Perform a full (static + dynamic) analysis
-- `static`: Perform a static-only analysis.
-- `dependencies`: Surface only the SBOM dependency graph.
+- `full`: Perform a full analysis, scanning for static and dynamic findings.
+- `static`: Scan for static findings only.
+- `dependencies`: Show dependencies in Insights > Dependency Graph (see [Dependency Insights Generation](#Dependency Insights Generation)).
 
-Note that iOS builds for `static` and `sbom` analyses must not be encrypted.
+If the input is not specified a full analysis will be run.
+
+Static-only and dependency-only analyses do not attempt to decrypt encrypted binaries as 
+these analyses are intended to provide a rapid result for e.g. a CI/CD pipeline. An encrypted
+binary will fail to analyze.
+
+Please note: 
+The assessment status on NowSecure Platform UI does not reflect successful completion of
+static-only or dependencies-only analysis. The labels in the UI will be "Partial Results"
+and "Failed Dynamic Analysis" due to the lack of a dynamic analysis.
 
 ```yml
 - id: upload
