@@ -9,7 +9,7 @@ on:
     branches:
       - develop
     paths:
-      - src/
+      - src/**
       - package.json
       - yarn.lock
 
