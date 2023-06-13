@@ -45,7 +45,8 @@ export function githubJobSummaryLong(
   return core.summary
     .addImage(
       "https://www.nowsecure.com/wp-content/uploads/2022/03/Logo-Nowsecure.png",
-      "NowSecure Logo"
+      "NowSecure Logo",
+      { width: "222", height: "40" }
     )
     .addHeading("Security Test Results")
     .addTable(findingsTable)
