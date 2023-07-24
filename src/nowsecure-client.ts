@@ -236,7 +236,7 @@ export class NowSecure {
    * Checks if the assessment limit has been reached. Throws an exception if
    * an error occurs.
    */
-  async isLicenseValid(licenseWorkaround: boolean): Promise<boolean> {
+  async isLicenseValid(): Promise<boolean> {
     const r = await this.#client.getJson<PullReportResponse>(
       `${this.#apiUrl}/graphql?query={${LICENSE_GQL}}`
     );
@@ -250,15 +250,8 @@ export class NowSecure {
       throw new Error(`Report request failed with error: ${error}`);
     }
 
-    const { total, limit, reached } =
-      r.result.data.my.user.organization.usage.assessment;
+    const { reached } = r.result.data.my.user.organization.usage.assessment;
 
-    let limitReached = reached;
-    if (licenseWorkaround) {
-      // FIXME: Workaround platform license counting issue.
-      limitReached = limit !== -1 && total + 1 >= limit;
-    }
-
-    return !limitReached;
+    return !reached;
   }
 }

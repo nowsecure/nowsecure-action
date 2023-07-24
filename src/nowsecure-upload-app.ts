@@ -16,10 +16,9 @@ async function run() {
     const groupId = core.getInput("group_id");
     const appFile = core.getInput("app_file");
     const versionString = core.getInput("version_string");
-    const licenseWorkaround = core.getBooleanInput("license_workaround");
     const analysisType = core.getInput("analysis_type");
 
-    const licenseValid = await ns.isLicenseValid(licenseWorkaround);
+    const licenseValid = await ns.isLicenseValid();
     if (!licenseValid) {
       throw new Error("Assessment limit reached");
     }

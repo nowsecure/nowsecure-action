@@ -19,10 +19,6 @@ inputs:
   group_id:
     required: true
     description: "Group ID for the application in Platform."
-  license_workaround:
-    required: true
-    description: "Workaround for improved license limit reached UX."
-    default: true
   version_string:
     required: false
     description: "Version string to associate with the build"
