@@ -39617,7 +39617,7 @@ function githubJobSummaryLong(platform, assessment, findingToIssueMap) {
     const findingsTable = getFindingsTable(platform, assessment, findingToIssueMap);
     const dependenciesTable = getDependenciesTable(assessment);
     return core.summary
-        .addImage("https://www.nowsecure.com/wp-content/uploads/2022/03/Logo-Nowsecure.png", "NowSecure Logo")
+        .addImage("https://www.nowsecure.com/wp-content/uploads/2022/03/Logo-Nowsecure.png", "NowSecure Logo", { width: "222", height: "40" })
         .addHeading("Security Test Results")
         .addTable(findingsTable)
         .addSeparator()
