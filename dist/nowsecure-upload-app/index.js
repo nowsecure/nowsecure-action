@@ -32021,7 +32021,7 @@ class NowSecure {
      * Checks if the assessment limit has been reached. Throws an exception if
      * an error occurs.
      */
-    isLicenseValid(licenseWorkaround) {
+    isLicenseValid() {
         return __awaiter(this, void 0, void 0, function* () {
             const r = yield __classPrivateFieldGet(this, _NowSecure_client, "f").getJson(`${__classPrivateFieldGet(this, _NowSecure_apiUrl, "f")}/graphql?query={${LICENSE_GQL}}`);
             if (r.statusCode !== 200) {
@@ -32031,13 +32031,8 @@ class NowSecure {
                 const error = r.result.errors[0];
                 throw new Error(`Report request failed with error: ${error}`);
             }
-            const { total, limit, reached } = r.result.data.my.user.organization.usage.assessment;
-            let limitReached = reached;
-            if (licenseWorkaround) {
-                // FIXME: Workaround platform license counting issue.
-                limitReached = limit !== -1 && total + 1 >= limit;
-            }
-            return !limitReached;
+            const { reached } = r.result.data.my.user.organization.usage.assessment;
+            return !reached;
         });
     }
 }
@@ -32497,9 +32492,8 @@ function run() {
             const groupId = core.getInput("group_id");
             const appFile = core.getInput("app_file");
             const versionString = core.getInput("version_string");
-            const licenseWorkaround = core.getBooleanInput("license_workaround");
             const analysisType = core.getInput("analysis_type");
-            const licenseValid = yield ns.isLicenseValid(licenseWorkaround);
+            const licenseValid = yield ns.isLicenseValid();
             if (!licenseValid) {
                 throw new Error("Assessment limit reached");
             }
