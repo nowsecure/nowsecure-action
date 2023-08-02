@@ -10,6 +10,11 @@ import { SummaryTableRow } from "@actions/core/lib/summary";
 import { PlatformConfig } from "./utils";
 import { IssueAction, IssueActionType } from "./nowsecure-issues";
 
+const LOGO_URL =
+  "https://www.nowsecure.com/wp-content/uploads/2022/03/Logo-Nowsecure.png";
+const LOGO_SIZE = { width: "222", height: "40" };
+const LOGO_ALT = "NowSecure Logo";
+
 export type FindingToIssueMap = {
   [index: string]: IssueAction;
 };
@@ -43,11 +48,7 @@ export function githubJobSummaryLong(
   const dependenciesTable = getDependenciesTable(assessment);
 
   return core.summary
-    .addImage(
-      "https://www.nowsecure.com/wp-content/uploads/2022/03/Logo-Nowsecure.png",
-      "NowSecure Logo",
-      { width: "222", height: "40" }
-    )
+    .addImage(LOGO_URL, LOGO_ALT, LOGO_SIZE)
     .addHeading("Security Test Results")
     .addTable(findingsTable)
     .addSeparator()
@@ -119,10 +120,7 @@ export function githubJobSummaryShort(
       .join("<br>");
 
   return core.summary
-    .addImage(
-      "https://www.nowsecure.com/wp-content/uploads/2022/03/Logo-Nowsecure.png",
-      "NowSecure Logo"
-    )
+    .addImage(LOGO_URL, LOGO_ALT, LOGO_SIZE)
     .addHeading("Security Test Results")
     .addTable([testResultHeader, ...results])
     .addDetails("Risks", formatDetail(findingsGroupedBy.fail))
