@@ -39604,6 +39604,9 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getFindingsTable = exports.getDependenciesTable = exports.githubWriteJobSummary = exports.githubJobSummaryShort = exports.githubJobSummaryLong = exports.githubJobSummary = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const nowsecure_issues_1 = __nccwpck_require__(783);
+const LOGO_URL = "https://www.nowsecure.com/wp-content/uploads/2022/03/Logo-Nowsecure.png";
+const LOGO_SIZE = { width: "222", height: "40" };
+const LOGO_ALT = "NowSecure Logo";
 function githubJobSummary(which, platform, assessment, findingToIssueMap) {
     switch (which) {
         case "short":
@@ -39617,7 +39620,7 @@ function githubJobSummaryLong(platform, assessment, findingToIssueMap) {
     const findingsTable = getFindingsTable(platform, assessment, findingToIssueMap);
     const dependenciesTable = getDependenciesTable(assessment);
     return core.summary
-        .addImage("https://www.nowsecure.com/wp-content/uploads/2022/03/Logo-Nowsecure.png", "NowSecure Logo", { width: "222", height: "40" })
+        .addImage(LOGO_URL, LOGO_ALT, LOGO_SIZE)
         .addHeading("Security Test Results")
         .addTable(findingsTable)
         .addSeparator()
@@ -39664,7 +39667,7 @@ function githubJobSummaryShort(platform, assessment, findingToIssueMap) {
         .map((finding) => riskLine(platform, assessment, finding, findingToIssueMap))
         .join("<br>");
     return core.summary
-        .addImage("https://www.nowsecure.com/wp-content/uploads/2022/03/Logo-Nowsecure.png", "NowSecure Logo")
+        .addImage(LOGO_URL, LOGO_ALT, LOGO_SIZE)
         .addHeading("Security Test Results")
         .addTable([testResultHeader, ...results])
         .addDetails("Risks", formatDetail(findingsGroupedBy.fail))
