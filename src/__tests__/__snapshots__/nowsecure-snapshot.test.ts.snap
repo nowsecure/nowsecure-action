@@ -12,7 +12,8 @@ exports[`Snapshot conversion can perform conversion 1`] = `
     "id": "42",
   },
   "manifests": {
-    "Payload/Example.app/ExampleFramework/Info.plist": Manifest {
+    "Payload/Example.app/ExampleFramework/Info.plist": g {
+      "file": undefined,
       "name": "Payload/Example.app/ExampleFramework/Info.plist",
       "resolved": {
         "pkg:cocoapods/ExamplePod3@3.0.0": {
@@ -23,7 +24,8 @@ exports[`Snapshot conversion can perform conversion 1`] = `
         },
       },
     },
-    "Payload/Example.app/libexample.dylib": Manifest {
+    "Payload/Example.app/libexample.dylib": g {
+      "file": undefined,
       "name": "Payload/Example.app/libexample.dylib",
       "resolved": {
         "pkg:generic/libexample@1.0.0": {
@@ -34,7 +36,8 @@ exports[`Snapshot conversion can perform conversion 1`] = `
         },
       },
     },
-    "Podfile.lock": Manifest {
+    "Podfile.lock": g {
+      "file": undefined,
       "name": "Podfile.lock",
       "resolved": {
         "pkg:cocoapods/ExamplePod1@1.0.0": {

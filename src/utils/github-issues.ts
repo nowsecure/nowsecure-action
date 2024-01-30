@@ -19,7 +19,11 @@ export class GitHubRepo {
    * @param repoName name of the repo
    * @param auth auth token (GitHub token or private token)
    */
-  constructor(public repoOwner: string, public repoName: string, auth: string) {
+  constructor(
+    public repoOwner: string,
+    public repoName: string,
+    auth: string
+  ) {
     this.octokit = new Octokit({ auth });
   }
 
