@@ -59,7 +59,7 @@ inputs:
     description: "Used for the correlator field in the SBOM format. Distinguishes independent Workflows."
     default: ${{ format('{0}_{1}', github.workflow, github.job) }}
 runs:
-  using: "node16"
+  using: "node20"
   main: "../dist/nowsecure-convert-sarif/index.js"
 branding:
   icon: alert-triangle
