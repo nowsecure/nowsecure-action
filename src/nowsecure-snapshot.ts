@@ -18,7 +18,7 @@ import { USER_AGENT } from "./nowsecure-client";
 function encodePurl(ecosystem: string, name: string, version?: string): string {
   let purl = `pkg:${ecosystem}/${name}`;
   if (version) {
-    purl += `@${version}`;
+    purl += `@${encodeURIComponent(version)}`;
   }
 
   return purl;
