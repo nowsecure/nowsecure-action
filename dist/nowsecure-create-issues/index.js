@@ -77268,7 +77268,7 @@ const nowsecure_version_1 = __nccwpck_require__(1328);
 function encodePurl(ecosystem, name, version) {
     let purl = `pkg:${ecosystem}/${name}`;
     if (version) {
-        purl += `@${version}`;
+        purl += `@${encodeURIComponent(version)}`;
     }
     return purl;
 }
