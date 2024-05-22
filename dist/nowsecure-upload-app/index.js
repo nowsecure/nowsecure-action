@@ -49023,8 +49023,15 @@ function convertToSnapshot(deputy, githubCorrelator, context) {
             // added the TypeScript compiler will emit an error.
         }
         const purl = encodePurl(ecosystem, component.name, component.version);
-        manifest.addDirectDependency(new dependency_submission_toolkit_1.Package(purl));
-        manifests[source] = manifest;
+        try {
+            const pkg = new dependency_submission_toolkit_1.Package(purl);
+            manifest.addDirectDependency(pkg);
+            manifests[source] = manifest;
+        }
+        catch (e) {
+            // Add some additional context about the PURL that failed to be parsed.
+            console.warn(`${e.message} (PURL is '${purl}')`);
+        }
     }
     const snapshot = new dependency_submission_toolkit_1.Snapshot({
         version: nowsecure_version_1.version,
