@@ -66,8 +66,14 @@ export function convertToSnapshot(
 
     const purl = encodePurl(ecosystem, component.name, component.version);
 
-    manifest.addDirectDependency(new Package(purl));
-    manifests[source] = manifest;
+    try {
+      const pkg = new Package(purl);
+      manifest.addDirectDependency(pkg);
+      manifests[source] = manifest;
+    } catch (e) {
+      // Add some additional context about the PURL that failed to be parsed.
+      console.warn(`${(e as Error).message} (PURL is '${purl}')`);
+    }
   }
 
   const snapshot = new Snapshot(
