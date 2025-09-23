@@ -66,6 +66,7 @@ jobs:
           platform_token: ${{ secrets.NS_TOKEN }}
           group_id: ${{ vars.NS_GROUP }}
           app_file: ./MASTG-DEMO-0001.apk
+          analysis_type: static
 
   # Pulls the NowSecure report, converts it to SARIF and uploads it.
   process:
@@ -88,7 +89,6 @@ jobs:
         uses: nowsecure/nowsecure-action/convert-sarif@v3
         timeout-minutes: 60
         with:
-          analysis_type: static
           report_id: ${{ needs.scan.outputs.report_id }}
           # TODO: Make sure you change these to your actual values
           platform_token: ${{ secrets.NS_TOKEN }}
