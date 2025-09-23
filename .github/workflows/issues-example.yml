@@ -1,0 +1,107 @@
+# An example workflow using the NowSecure Issues action.
+# This action is run each time a commit is pushed to the "main" branch,
+# on pull requests or the workflow is manually triggered
+#
+# This workflow builds an Android application saving the output apk as
+# an artifact in the "build" phase.
+#
+# In the "scan" phase the apk is uploaded to NowSecure, generating a
+# report.
+#
+# In the "issues" phase the report is downloaded from NowSecure and
+# issues are generated for findings that match the filter criteria
+# (which can be overridden in .nsconfig.yml)
+#
+# In the CI/CD config:
+# - Set the NS_TOKEN secret to a NowSecure Api token for your NowSecure user
+# - Set the NS_GROUP_ID secret to the id of the group to which the
+#      application should be added.
+
+name: NowSecure Issues Example
+
+on:
+  # For a real workflow, you'd likely want to run on push to main
+  # push:
+  #   branches: [main]
+  # pull_request:
+  #   branches: [main]
+  workflow_dispatch:
+
+env:
+  # Name of the output file from the build stage without a path
+  # defined as a var since it's used more than once.
+  BUILD_OUTPUT_NAME: "MASTG-DEMO-0001.apk"
+
+jobs:
+  # EXAMPLE: Build and upload an Android application to GH artifacts.
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      # TODO: Insert your actual build steps here
+      #
+      # - name: Install Java
+      #   uses: actions/setup-java@v2
+      #   with:
+      #     java-version: "21"
+      #     distribution: "adopt"
+      #     cache: "gradle"
+      #
+      # - name: Build project
+      #   run |
+      #     ./gradlew clean build
+
+      - name: Upload application
+        uses: actions/upload-artifact@v4
+        with:
+          name: app
+          # TODO: Replace this with the path to your built artifact
+          path: ./test-artifacts/MASTG-DEMO-0001.apk
+
+  # Scan the Android application with NowSecure.
+  scan:
+    runs-on: ubuntu-latest
+    outputs:
+      report_id: ${{ steps.upload.outputs.report_id }}
+    needs: build
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      # NOTE: ripgrep is required for line-of-code identification.
+      - name: Install ripgrep
+        run: sudo apt-get install --no-install-recommends -y ripgrep
+
+      - name: Download application
+        uses: actions/download-artifact@v5
+        with:
+          name: app
+
+      - id: upload
+        name: NowSecure upload app
+        uses: nowsecure/nowsecure-action/upload-app@v3
+        with:
+          platform_token: ${{ secrets.NS_TOKEN }}
+          group_id: ${{ vars.NS_GROUP_ID }}
+          app_file: ${{ env.BUILD_OUTPUT_NAME }}
+
+  issues:
+    needs: scan
+    if: ${{ needs.scan.outputs.report_id }}
+    runs-on: ubuntu-latest
+    permissions: write-all
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      # create issues. Uses the defaults: create issues in the current
+      # repository and assign them to the repository owner
+      - id: createIssues
+        uses: nowsecure/nowsecure-action/create-issues@v3
+        timeout-minutes: 60
+        with:
+          report_id: ${{ needs.scan.outputs.report_id }}
+          platform_token: ${{ secrets.NS_TOKEN }}
+          config: "issues"

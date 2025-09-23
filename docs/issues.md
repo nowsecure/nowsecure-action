@@ -6,7 +6,7 @@ See the [Getting Started](./getting-started.md) guide for prerequisites.
 
 ## For a New Workflow
 
-For the easiest setup, see our [example annotated issues workflow](../workflows/issues.yml).
+For the easiest setup, see our [example annotated issues workflow](../.github/workflows/issues-example.yml).
 
 ## For an Existing Workflow
 
@@ -21,11 +21,11 @@ scan:
   needs: build
   steps:
     - name: Checkout repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v5
 
     # Replace with whatever pulls the application file before we upload.
     - name: Download application
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v5
       with:
         # Generated in the "build" stage.
         name: app
@@ -51,7 +51,7 @@ process:
   needs: scan
   steps:
     - name: Checkout repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v5
 
   - id: createIssues
     name: Create NowSecure issues
