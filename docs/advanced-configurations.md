@@ -10,6 +10,7 @@ documented here.
 - [SBOM Generation](#sbom-generation)
 - [Custom Build Version Strings](custom-build-version-strings)
 - [Saving Action Minutes](#saving-action-minutes)
+- [Minimum Score Thresholds](#minimum-score-thresholds)
 
 ## Action Configuration
 
@@ -185,3 +186,34 @@ process:
 ```
 
 This will delay the execution of the example `process` stage by the amount of minutes specified for the wait timer in the the "nowsecure-env" environment.
+
+## Minimum Score Thresholds
+
+The NowSecure Action also provides an optional `minimum_score` input which represents the score that your assessment needs to exceed.
+If it does not, your pipeline will fail. This is valuable to ensure that your application's security scores do not decline as new versions are released.
+
+Note that this option is available on both the `convert-sarif` and `create-issues` actions
+
+```yml
+- name: NowSecure download report
+  uses: nowsecure/nowsecure-action/convert-sarif@v3
+  with:
+    report_id: ${{ needs.scan.outputs.report_id }}
+    platform_token: ${{ secrets.NS_TOKEN }}
+    group_id: ${{ vars.NS_GROUP }}
+    # TODO: Switch to whatever score threshold is right for your organization
+    minimum_score: 40
+```
+
+
+```yml
+- name: NowSecure download report
+  uses: nowsecure/nowsecure-action/create-issues@v3
+  with:
+    report_id: ${{ needs.scan.outputs.report_id }}
+    platform_token: ${{ secrets.NS_TOKEN }}
+    group_id: ${{ vars.NS_GROUP }}
+    config: "issues"
+    # TODO: Switch to whatever score threshold is right for your organization
+    minimum_score: 40
+```
