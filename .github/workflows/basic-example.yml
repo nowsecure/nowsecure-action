@@ -1,0 +1,106 @@
+# An example workflow using the NowSecure action that builds an Android application
+# in the "build" phase and then runs it against NowSecure in the "scan" phase.
+# This action is run each time a commit is pushed to the "main" branch.
+
+name: NowSecure Basic Example
+
+on:
+  # For a real workflow, you'd likely want to run on push to main. Example:
+  # push:
+  #   branches: [main]
+  # pull_request:
+  #   branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      # TODO: Insert your actual build steps here. Example:
+      #
+      # - name: Install Java
+      #   uses: actions/setup-java@v2
+      #   with:
+      #     java-version: "21"
+      #     distribution: "adopt"
+      #     cache: "gradle"
+      #
+      # - name: Build project
+      #   run |
+      #     ./gradlew clean build
+
+      - name: Upload application
+        uses: actions/upload-artifact@v4
+        with:
+          name: app
+          # TODO: Replace the following line with the path to your built artifact
+          path: ./test-artifacts/MASTG-DEMO-0001.apk
+
+  # Scan the Android application with NowSecure.
+  scan:
+    runs-on: ubuntu-latest
+    outputs:
+      report_id: ${{ steps.upload.outputs.report_id }}
+    needs: build
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      # NOTE: The NowSecure Action leverages ripgrep
+      - name: Install ripgrep
+        run: sudo apt-get install --no-install-recommends -y ripgrep
+
+      - name: Download application
+        uses: actions/download-artifact@v5
+        with:
+          name: app
+
+      - id: upload
+        name: NowSecure upload app
+        uses: nowsecure/nowsecure-action/upload-app@v3
+        with:
+          # TODO: Make sure you change these to your actual values
+          platform_token: ${{ secrets.NS_TOKEN }}
+          group_id: ${{ vars.NS_GROUP }}
+          app_file: ./MASTG-DEMO-0001.apk
+          analysis_type: static
+
+  # Pulls the NowSecure report, converts it to SARIF and uploads it.
+  process:
+    if: ${{ needs.scan.outputs.report_id }}
+    runs-on: ubuntu-latest
+    environment:
+      name: nowsecure-env
+    needs: scan
+    permissions:
+      # required for all workflows
+      security-events: write
+      # only required for workflows in private repositories
+      actions: read
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: NowSecure download report
+        uses: nowsecure/nowsecure-action/convert-sarif@v3
+        timeout-minutes: 60
+        with:
+          report_id: ${{ needs.scan.outputs.report_id }}
+          # TODO: Make sure you change these to your actual values
+          platform_token: ${{ secrets.NS_TOKEN }}
+          group_id: ${{ vars.NS_GROUP }}
+
+      - name: Upload SARIF file
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: NowSecure.sarif
+
+      - name: Upload SARIF to artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: NowSecure.sarif
+          path: ./NowSecure.sarif
