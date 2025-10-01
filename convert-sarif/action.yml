@@ -63,7 +63,7 @@ inputs:
     description: "Defines the score under which an assessment will fail"
     default: 0
 runs:
-  using: "node20"
+  using: "node24"
   main: "../dist/nowsecure-convert-sarif/index.js"
 branding:
   icon: alert-triangle

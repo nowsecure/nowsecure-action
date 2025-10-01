@@ -69,7 +69,6 @@ jobs:
           analysis_type: static
           group_id: ${{ vars.NS_GROUP }}
           app_file: ./MASTG-DEMO-0031.apk
-          analysis_type: static
 
   # Pulls the NowSecure report, converts it to SARIF and uploads it.
   process:
