@@ -48462,6 +48462,7 @@ const platformGql = (reportId) => `{
       deputy: _raw(path: "yaap.complete.results[0].deputy.deputy.data[0].results")
       platformType
       packageKey
+      score
       taskId
       applicationRef
       ref
@@ -48697,9 +48698,9 @@ const action_utils_1 = __nccwpck_require__(5213);
 const utils_1 = __nccwpck_require__(6252);
 const nowsecure_summary_1 = __nccwpck_require__(6359);
 function run() {
+    var _a;
     return __awaiter(this, void 0, void 0, function* () {
         const reportId = core.getInput("report_id");
-        console.log(`Processing report with ID: ${reportId}`);
         try {
             const config = new utils_1.NsConfig(core.getInput("config_path"));
             const jobConfig = config.getConfig(core.getInput("config"), "sarif");
@@ -48708,12 +48709,14 @@ function run() {
             if (isNaN(pollInterval)) {
                 pollInterval = 60000;
             }
+            const minimumScore = parseInt(core.getInput("minimum_score"), 10);
             const enableSarif = core.getBooleanInput("enable_sarif");
             const enableDependencies = core.getBooleanInput("enable_dependencies");
             const githubToken = core.getInput("github_token");
             const githubCorrelator = core.getInput("github_correlator");
             const ns = new nowsecure_client_1.NowSecure(platform);
             const report = yield ns.pollForReport(reportId, pollInterval);
+            const score = (_a = report.data.auto.assessments[0]) === null || _a === void 0 ? void 0 : _a.score;
             if (enableDependencies) {
                 yield (0, action_utils_1.outputToDependencies)(report, github.context, githubCorrelator);
             }
@@ -48723,6 +48726,11 @@ function run() {
             if (jobConfig.summary !== "none") {
                 (0, nowsecure_summary_1.githubJobSummary)(jobConfig.summary, platform, report.data.auto.assessments[0], null);
                 yield (0, nowsecure_summary_1.githubWriteJobSummary)();
+            }
+            if (minimumScore > 0) {
+                if (score < minimumScore) {
+                    throw new Error(`Score: ${score} is less than minimum_score: ${minimumScore}`);
+                }
             }
         }
         catch (e) {
