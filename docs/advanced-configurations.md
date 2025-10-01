@@ -192,7 +192,9 @@ This will delay the execution of the example `process` stage by the amount of mi
 The NowSecure Action also provides an optional `minimum_score` input which represents the score that your assessment needs to exceed.
 If it does not, your pipeline will fail. This is valuable to ensure that your application's security scores do not decline as new versions are released.
 
-Note that this option is available on both the `convert-sarif` and `create-issues` actions
+If the `minimum_score` input is not set, it will not be evaluated.
+
+Note that this input is available on both the `convert-sarif` and `create-issues` actions.
 
 ```yml
 - name: NowSecure download report
