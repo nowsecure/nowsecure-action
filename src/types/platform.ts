@@ -73,13 +73,14 @@ export interface PullReportResponse {
 }
 
 export interface Assessment {
-  platformType: string;
-  packageKey: string;
-  taskId: string;
   applicationRef: string;
+  deputy: Deputy | null;
+  packageKey: string;
+  platformType: string;
   ref: string;
   report: Report | null;
-  deputy: Deputy | null;
+  score: number | null;
+  taskId: string;
 }
 
 export interface Report {
