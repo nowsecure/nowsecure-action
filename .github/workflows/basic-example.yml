@@ -5,7 +5,7 @@
 name: NowSecure Basic Example
 
 on:
-  # For a real workflow, you'd likely want to run on push to main
+  # For a real workflow, you'd likely want to run on push to main. Example:
   # push:
   #   branches: [main]
   # pull_request:
@@ -19,7 +19,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v5
 
-      # TODO: Insert your actual build steps here
+      # TODO: Insert your actual build steps here. Example:
       #
       # - name: Install Java
       #   uses: actions/setup-java@v2
@@ -36,7 +36,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: app
-          # TODO: Replace this with the path to your built artifact
+          # TODO: Replace the following line with the path to your built artifact
           path: ./test-artifacts/MASTG-DEMO-0001.apk
 
   # Scan the Android application with NowSecure.
@@ -49,7 +49,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v5
 
-      # NOTE: ripgrep is required for line-of-code identification.
+      # NOTE: The NowSecure Action leverages ripgrep
       - name: Install ripgrep
         run: sudo apt-get install --no-install-recommends -y ripgrep
 

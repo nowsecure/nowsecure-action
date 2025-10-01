@@ -25,7 +25,7 @@ For the easiest setup, see the [example annotated workflow](../.github/workflows
 
 ### For an Existing Workflow
 
-> Note: For line-of-code identification, `ripgrep` must be available in the runner. For Ubuntu images, add a step for `apt-get install -y ripgrep`.
+> Note: The NowSecure Action leverages ripgrep. For Ubuntu images, add a step for `apt-get install -y ripgrep`
 
 After the stage that builds your application, create a new stage called `scan`:
 
