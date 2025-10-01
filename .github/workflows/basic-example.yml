@@ -37,7 +37,7 @@ jobs:
         with:
           name: app
           # TODO: Replace the following line with the path to your built artifact
-          path: ./test-artifacts/MASTG-DEMO-0001.apk
+          path: ./test-artifacts/MASTG-DEMO-0031.apk
 
   # Scan the Android application with NowSecure.
   scan:
@@ -60,12 +60,15 @@ jobs:
 
       - id: upload
         name: NowSecure upload app
-        uses: nowsecure/nowsecure-action/upload-app@v3
+        # TODO: switch to the following:
+        # uses: nowsecure/nowsecure-action/upload-app@v3
+        uses: ./upload-app
         with:
           # TODO: Make sure you change these to your actual values
           platform_token: ${{ secrets.NS_TOKEN }}
+          analysis_type: static
           group_id: ${{ vars.NS_GROUP }}
-          app_file: ./MASTG-DEMO-0001.apk
+          app_file: ./MASTG-DEMO-0031.apk
           analysis_type: static
 
   # Pulls the NowSecure report, converts it to SARIF and uploads it.
@@ -86,13 +89,16 @@ jobs:
         uses: actions/checkout@v5
 
       - name: NowSecure download report
-        uses: nowsecure/nowsecure-action/convert-sarif@v3
+        # TODO: switch to the following:
+        # uses: nowsecure/nowsecure-action/convert-sarif@v3
+        uses: ./convert-sarif
         timeout-minutes: 60
         with:
           report_id: ${{ needs.scan.outputs.report_id }}
           # TODO: Make sure you change these to your actual values
           platform_token: ${{ secrets.NS_TOKEN }}
           group_id: ${{ vars.NS_GROUP }}
+          minimum_score: ${{ vars.MIN_SCORE }}
 
       - name: Upload SARIF file
         uses: github/codeql-action/upload-sarif@v3

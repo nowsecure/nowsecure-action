@@ -58,6 +58,10 @@ inputs:
     required: false
     description: "Used for the correlator field in the SBOM format. Distinguishes independent Workflows."
     default: ${{ format('{0}_{1}', github.workflow, github.job) }}
+  minimum_score:
+    required: false
+    description: "Defines the score under which an assessment will fail"
+    default: 0
 runs:
   using: "node20"
   main: "../dist/nowsecure-convert-sarif/index.js"

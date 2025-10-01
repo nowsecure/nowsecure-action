@@ -76473,6 +76473,7 @@ const platformGql = (reportId) => `{
       deputy: _raw(path: "yaap.complete.results[0].deputy.deputy.data[0].results")
       platformType
       packageKey
+      score
       taskId
       applicationRef
       ref
@@ -76736,6 +76737,7 @@ function run() {
         const repo = getRepo();
         const platform = (0, utils_1.platformConfig)();
         const ns = new nowsecure_client_1.NowSecure(platform);
+        const minimumScore = parseInt(core.getInput("minimum_score"), 10);
         const reportId = core.getInput("report_id");
         console.log(`Fetching NowSecure report with ID: ${reportId}`);
         const jobConfig = config.getConfig(configName, "issues");
@@ -76745,6 +76747,7 @@ function run() {
         const data = yield ns.pollForReport(reportId, pollInterval);
         const assessment = (_b = (_a = data === null || data === void 0 ? void 0 : data.data) === null || _a === void 0 ? void 0 : _a.auto) === null || _b === void 0 ? void 0 : _b.assessments[0];
         const report = assessment === null || assessment === void 0 ? void 0 : assessment.report;
+        const score = assessment === null || assessment === void 0 ? void 0 : assessment.score;
         if (!report) {
             throw new Error("No report data");
         }
@@ -76794,6 +76797,11 @@ ${(0, nowsecure_issues_1.nsIssueTag)(assessment, finding, jobConfig.key)}
         if (jobConfig.summary !== "none") {
             (0, nowsecure_summary_1.githubJobSummary)(jobConfig.summary, platform, assessment, issueMap);
             yield (0, nowsecure_summary_1.githubWriteJobSummary)();
+        }
+        if (minimumScore > 0) {
+            if (score < minimumScore) {
+                throw new Error(`Score: ${score} is less than minimum_score: ${minimumScore}`);
+            }
         }
     });
 }

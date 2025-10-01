@@ -6,14 +6,14 @@ To use this action an active NowSecure Platform account is required. If you **_a
 
 ## Prerequisites
 
-- Get a token from your NowSecure platform instance. More information on this can be found in the 
-[NowSecure Support Portal](https://support.nowsecure.com/hc/en-us/articles/7499657262093-Creating-a-NowSecure-Platform-API-Bearer-Token)
+- Get a token from your NowSecure platform instance. More information on this can be found in the
+  [NowSecure Support Portal](https://support.nowsecure.com/hc/en-us/articles/7499657262093-Creating-a-NowSecure-Platform-API-Bearer-Token)
 
-- Identify the ID of the group in NowSecure Platform that you want your assessment to be included in. 
-More information on this can be found in the 
-[NowSecure Support Portal](https://support.nowsecure.com/hc/en-us/articles/38057956447757-Retrieve-Reference-and-ID-Numbers-for-API-Use-Task-ID-Group-App-and-Assessment-Ref). 
+- Identify the ID of the group in NowSecure Platform that you want your assessment to be included in.
+  More information on this can be found in the
+  [NowSecure Support Portal](https://support.nowsecure.com/hc/en-us/articles/38057956447757-Retrieve-Reference-and-ID-Numbers-for-API-Use-Task-ID-Group-App-and-Assessment-Ref).
 
-- Add a [GitHub Actions Secret](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets) to your project named, `NS_TOKEN` and add the token created above.  
+- Add a [GitHub Actions Secret](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets) to your project named, `NS_TOKEN` and add the token created above.
 
 - (For GHAS integration) An active GitHub account (cloud or on-prem) with an active Advanced Security feature
 

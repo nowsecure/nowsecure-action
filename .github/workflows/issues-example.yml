@@ -30,7 +30,7 @@ on:
 env:
   # Name of the output file from the build stage without a path
   # defined as a var since it's used more than once.
-  BUILD_OUTPUT_NAME: "MASTG-DEMO-0001.apk"
+  BUILD_OUTPUT_NAME: "MASTG-DEMO-0031.apk"
 
 jobs:
   # EXAMPLE: Build and upload an Android application to GH artifacts.
@@ -58,7 +58,7 @@ jobs:
         with:
           name: app
           # TODO: Replace this with the path to your built artifact
-          path: ./test-artifacts/MASTG-DEMO-0001.apk
+          path: ./test-artifacts/MASTG-DEMO-0031.apk
 
   # Scan the Android application with NowSecure.
   scan:
@@ -81,7 +81,9 @@ jobs:
 
       - id: upload
         name: NowSecure upload app
-        uses: nowsecure/nowsecure-action/upload-app@v3
+        # TODO: switch to the following:
+        # uses: nowsecure/nowsecure-action/upload-app@v3
+        uses: ./upload-app
         with:
           platform_token: ${{ secrets.NS_TOKEN }}
           group_id: ${{ vars.NS_GROUP_ID }}
@@ -99,9 +101,12 @@ jobs:
       # create issues. Uses the defaults: create issues in the current
       # repository and assign them to the repository owner
       - id: createIssues
-        uses: nowsecure/nowsecure-action/create-issues@v3
+        # TODO: switch to the following:
+        # uses: nowsecure/nowsecure-action/create-issues@v3
+        uses: ./create-issue
         timeout-minutes: 60
         with:
           report_id: ${{ needs.scan.outputs.report_id }}
           platform_token: ${{ secrets.NS_TOKEN }}
           config: "issues"
+          minimum_score: ${{ vars.MIN_SCORE }}

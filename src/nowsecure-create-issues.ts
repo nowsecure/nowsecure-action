@@ -62,6 +62,7 @@ export async function run() {
   const platform = platformConfig();
   const ns = new NowSecure(platform);
 
+  const minimumScore = parseInt(core.getInput("minimum_score"), 10);
   const reportId = core.getInput("report_id");
   console.log(`Fetching NowSecure report with ID: ${reportId}`);
 
@@ -75,6 +76,7 @@ export async function run() {
 
   const assessment = data?.data?.auto?.assessments[0];
   const report = assessment?.report;
+  const score = assessment?.score;
   if (!report) {
     throw new Error("No report data");
   }
@@ -153,6 +155,14 @@ ${nsIssueTag(assessment, finding, jobConfig.key)}
   if (jobConfig.summary !== "none") {
     githubJobSummary(jobConfig.summary, platform, assessment, issueMap);
     await githubWriteJobSummary();
+  }
+
+  if (minimumScore > 0) {
+    if (score < minimumScore) {
+      throw new Error(
+        `Score: ${score} is less than minimum_score: ${minimumScore}`
+      );
+    }
   }
 }
 
