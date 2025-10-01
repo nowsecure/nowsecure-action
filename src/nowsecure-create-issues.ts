@@ -143,7 +143,7 @@ ${nsIssueTag(assessment, finding, jobConfig.key)}
     switch (action.action) {
       case IssueActionType.CREATE:
         const { data } = await createIssue(finding);
-        action.existingIssue = data;
+        action.existingIssue = data as GitHub.Issue;
         break;
 
       case IssueActionType.REOPEN:
