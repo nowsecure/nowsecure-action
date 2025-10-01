@@ -6,7 +6,7 @@ See the [Getting Started](./getting-started.md) guide for prerequisites.
 
 ## For a New Workflow
 
-For the easiest setup, see our [example annotated issues workflow](../.github/workflows/issues-example.yml).
+For the easiest setup, see our [example annotated issues workflow](../.github/workflows/issues-example.yml) in this repository's `./github/workflows` directory.
 
 ## For an Existing Workflow
 

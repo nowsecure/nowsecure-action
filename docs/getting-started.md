@@ -21,7 +21,7 @@ More information on this can be found in the
 
 ### For a New Workflow
 
-For the easiest setup, see the [example annotated workflow](../.github/workflows/basic-example.yml).
+For the easiest setup, see the [example annotated workflow](../.github/workflows/basic-example.yml) in this repository's `./github/workflows/` directory.
 
 ### For an Existing Workflow
 
