@@ -46,7 +46,7 @@ inputs:
     required: false
     description: "The owner of the GitHub repository used to create issues. Defaults to the owner of the repo running the action"
 runs:
-  using: "node20"
+  using: "node24"
   main: "../dist/nowsecure-create-issues/index.js"
 branding:
   icon: alert-triangle
