@@ -109,7 +109,10 @@ export function githubJobSummaryShort(
   const results = [
     [":white_check_mark: Pass", findingsGroupedBy.pass.length.toString()],
     [":red_circle: Fail", findingsGroupedBy.fail.length.toString()],
-    [":bricks: Dependencies", assessment.deputy.components.length.toString()],
+    [
+      ":bricks: Dependencies",
+      assessment.deputy?.components?.length?.toString() || "N/A",
+    ],
   ];
 
   const formatDetail = (findings: Finding[]) =>

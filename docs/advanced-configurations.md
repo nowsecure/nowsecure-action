@@ -207,7 +207,6 @@ Note that this input is available on both the `convert-sarif` and `create-issues
     minimum_score: 40
 ```
 
-
 ```yml
 - name: NowSecure download report
   uses: nowsecure/nowsecure-action/create-issues@v3

@@ -81,10 +81,30 @@ export interface Assessment {
   report: Report | null;
   score: number | null;
   taskId: string;
+  analysis: Analysis | null;
+  assessmentError: AssessmentError | null;
 }
 
 export interface Report {
   findings: Finding[];
+}
+
+export type AnalysisState =
+  | "pending"
+  | "processing"
+  | "completed"
+  | "failed"
+  | "cancelled";
+
+export interface Analysis {
+  status: AnalysisState;
+}
+
+export interface AssessmentError {
+  code: string | null;
+  description: string | null;
+  options: string | null;
+  title: string | null;
 }
 
 export type FindingType = "static" | "dynamic";

@@ -52,6 +52,15 @@ const platformGql = (reportId: string): string => `{
       taskId
       applicationRef
       ref
+      analysis {
+        status
+      }
+      assessmentError {
+        code
+        description
+        options
+        title
+      }
       report {
         findings {
           kind

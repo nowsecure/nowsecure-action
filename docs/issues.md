@@ -60,5 +60,4 @@ process:
     with:
       report_id: ${{ needs.scan.outputs.report_id }}
       platform_token: ${{ secrets.NS_TOKEN }}
-      config: "issues"
 ```

@@ -58,7 +58,7 @@ jobs:
         with:
           name: app
           # TODO: Replace this with the path to your built artifact
-          path: ./test-artifacts/MASTG-DEMO-0031.apk
+          path: ${{ env.BUILD_OUTPUT_NAME }}
 
   # Scan the Android application with NowSecure.
   scan:
@@ -86,7 +86,7 @@ jobs:
         uses: ./upload-app
         with:
           platform_token: ${{ secrets.NS_TOKEN }}
-          group_id: ${{ vars.NS_GROUP_ID }}
+          group_id: ${{ vars.NS_GROUP }}
           app_file: ${{ env.BUILD_OUTPUT_NAME }}
 
   issues:
@@ -103,10 +103,9 @@ jobs:
       - id: createIssues
         # TODO: switch to the following:
         # uses: nowsecure/nowsecure-action/create-issues@v3
-        uses: ./create-issue
+        uses: ./create-issues
         timeout-minutes: 60
         with:
           report_id: ${{ needs.scan.outputs.report_id }}
           platform_token: ${{ secrets.NS_TOKEN }}
-          config: "issues"
           minimum_score: ${{ vars.MIN_SCORE }}

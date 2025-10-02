@@ -81,6 +81,15 @@ export async function run() {
     throw new Error("No report data");
   }
 
+  const status = assessment?.analysis?.status;
+
+  if (status === "failed") {
+    const error = assessment?.assessmentError;
+    const title = error?.title || error?.code || "Unknown Error";
+    const description = error?.description || "An unknown error occurred.";
+    throw new Error(`${title}: ${description}`);
+  }
+
   console.log(
     `Total number of findings in report ${reportId}: ${report.findings.length}`
   );
