@@ -19,6 +19,8 @@ To use this action an active NowSecure Platform account is required. If you **_a
 
 ## Basic Configuration
 
+> Note: The NowSecure action is dependent upon the results of the NowSecure assessment.  If the assessment fails, the action will also fail.
+
 ### For a New Workflow
 
 For the easiest setup, see the [example annotated workflow](../.github/workflows/basic-example.yml) in this repository's `./github/workflows/` directory.
@@ -51,7 +53,7 @@ scan:
 
     - id: upload
       name: NowSecure upload app
-      uses: nowsecure/nowsecure-action/upload-app@v3
+      uses: nowsecure/nowsecure-action/upload-app@v5
       with:
         platform_token: ${{ secrets.NS_TOKEN }}
         # TODO: Replace application path.
