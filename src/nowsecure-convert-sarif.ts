@@ -37,6 +37,15 @@ async function run() {
 
     const report = await ns.pollForReport(reportId, pollInterval);
     const score = report.data.auto.assessments[0]?.score;
+    const assessment = report.data.auto.assessments[0];
+    const status = assessment?.analysis?.status;
+
+    if (status === "failed") {
+      const error = assessment?.assessmentError;
+      const title = error?.title || error?.code || "Unknown Error";
+      const description = error?.description || "An unknown error occurred.";
+      throw new Error(`${title}: ${description}`);
+    }
 
     if (enableDependencies) {
       await outputToDependencies(report, github.context, githubCorrelator);

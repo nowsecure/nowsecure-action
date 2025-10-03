@@ -48006,6 +48006,15 @@ const platformGql = (reportId) => `{
       taskId
       applicationRef
       ref
+      analysis {
+        status
+      }
+      assessmentError {
+        code
+        description
+        options
+        title
+      }
       report {
         findings {
           kind
@@ -48238,7 +48247,7 @@ const action_utils_1 = __nccwpck_require__(5213);
 const utils_1 = __nccwpck_require__(6252);
 const nowsecure_summary_1 = __nccwpck_require__(6359);
 function run() {
-    var _a;
+    var _a, _b;
     return __awaiter(this, void 0, void 0, function* () {
         const reportId = core.getInput("report_id");
         try {
@@ -48257,6 +48266,14 @@ function run() {
             const ns = new nowsecure_client_1.NowSecure(platform);
             const report = yield ns.pollForReport(reportId, pollInterval);
             const score = (_a = report.data.auto.assessments[0]) === null || _a === void 0 ? void 0 : _a.score;
+            const assessment = report.data.auto.assessments[0];
+            const status = (_b = assessment === null || assessment === void 0 ? void 0 : assessment.analysis) === null || _b === void 0 ? void 0 : _b.status;
+            if (status === "failed") {
+                const error = assessment === null || assessment === void 0 ? void 0 : assessment.assessmentError;
+                const title = (error === null || error === void 0 ? void 0 : error.title) || (error === null || error === void 0 ? void 0 : error.code) || "Unknown Error";
+                const description = (error === null || error === void 0 ? void 0 : error.description) || "An unknown error occurred.";
+                throw new Error(`${title}: ${description}`);
+            }
             if (enableDependencies) {
                 yield (0, action_utils_1.outputToDependencies)(report, github.context, githubCorrelator);
             }
@@ -48893,6 +48910,7 @@ function riskLine(platform, assessment, finding, findingToIssueMap) {
     return line;
 }
 function githubJobSummaryShort(platform, assessment, findingToIssueMap) {
+    var _a, _b, _c;
     const grouping = { pass: [], fail: [] };
     const findingsGroupedBy = assessment.report.findings.reduce((acc, finding) => {
         var _a;
@@ -48912,7 +48930,10 @@ function githubJobSummaryShort(platform, assessment, findingToIssueMap) {
     const results = [
         [":white_check_mark: Pass", findingsGroupedBy.pass.length.toString()],
         [":red_circle: Fail", findingsGroupedBy.fail.length.toString()],
-        [":bricks: Dependencies", assessment.deputy.components.length.toString()],
+        [
+            ":bricks: Dependencies",
+            ((_c = (_b = (_a = assessment.deputy) === null || _a === void 0 ? void 0 : _a.components) === null || _b === void 0 ? void 0 : _b.length) === null || _c === void 0 ? void 0 : _c.toString()) || "N/A",
+        ],
     ];
     const formatDetail = (findings) => findings
         .map((finding) => riskLine(platform, assessment, finding, findingToIssueMap))
