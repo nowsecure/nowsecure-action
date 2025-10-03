@@ -1,4 +1,4 @@
-# Migrating to V3
+# Migrating from Earlier Versions
 
 Migrating from a previous version to V3 is straightforward. However there are two breaking changes in V3 that need to be addressed prior to migrating:
 
