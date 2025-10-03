@@ -82,7 +82,7 @@ jobs:
       - id: upload
         name: NowSecure upload app
         # TODO: switch to the following:
-        # uses: nowsecure/nowsecure-action/upload-app@v3
+        # uses: nowsecure/nowsecure-action/upload-app@v5
         uses: ./upload-app
         with:
           platform_token: ${{ secrets.NS_TOKEN }}
@@ -102,7 +102,7 @@ jobs:
       # repository and assign them to the repository owner
       - id: createIssues
         # TODO: switch to the following:
-        # uses: nowsecure/nowsecure-action/create-issues@v3
+        # uses: nowsecure/nowsecure-action/create-issues@v5
         uses: ./create-issues
         timeout-minutes: 60
         with:
