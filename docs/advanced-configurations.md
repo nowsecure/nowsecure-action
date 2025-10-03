@@ -73,7 +73,7 @@ The `example-workflow-config` can then be referenced by your workflow:
 
 ```yml
 - name: NowSecure
-  uses: nowsecure/nowsecure-action/convert-sarif@v3
+  uses: nowsecure/nowsecure-action/convert-sarif@v5
   timeout-minutes: 60
   with:
     # Specify a config in .nsconfig.yml
@@ -125,7 +125,7 @@ hash of the commit that triggered the action:
 ```yml
 - id: upload
   name: NowSecure upload app
-  uses: nowsecure/nowsecure-action/upload-app@v3
+  uses: nowsecure/nowsecure-action/upload-app@v5
   with:
     version_string: ${{ github.sha }}
     platform_token: ${{ secrets.NS_TOKEN }}
@@ -157,7 +157,7 @@ and "Failed Dynamic Analysis" due to the lack of a dynamic analysis.
 ```yml
 - id: upload
   name: NowSecure upload app
-  uses: nowsecure/nowsecure-action/upload-app@v3
+  uses: nowsecure/nowsecure-action/upload-app@v5
   with:
     analysis_type: static
     platform_token: ${{ secrets.NS_TOKEN }}
@@ -198,7 +198,7 @@ Note that this input is available on both the `convert-sarif` and `create-issues
 
 ```yml
 - name: NowSecure download report
-  uses: nowsecure/nowsecure-action/convert-sarif@v3
+  uses: nowsecure/nowsecure-action/convert-sarif@v5
   with:
     report_id: ${{ needs.scan.outputs.report_id }}
     platform_token: ${{ secrets.NS_TOKEN }}
@@ -209,7 +209,7 @@ Note that this input is available on both the `convert-sarif` and `create-issues
 
 ```yml
 - name: NowSecure download report
-  uses: nowsecure/nowsecure-action/create-issues@v3
+  uses: nowsecure/nowsecure-action/create-issues@v5
   with:
     report_id: ${{ needs.scan.outputs.report_id }}
     platform_token: ${{ secrets.NS_TOKEN }}

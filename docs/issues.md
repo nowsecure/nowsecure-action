@@ -32,7 +32,7 @@ scan:
 
     - id: upload
       name: NowSecure Upload App
-      uses: nowsecure/nowsecure-action/upload-app@v3
+      uses: nowsecure/nowsecure-action/upload-app@v5
       with:
         platform_token: ${{ secrets.NS_TOKEN }}
         # TODO: Replace application path.
@@ -55,7 +55,7 @@ process:
 
   - id: createIssues
     name: Create NowSecure issues
-    uses: nowsecure/nowsecure-action/create-issues@v3
+    uses: nowsecure/nowsecure-action/create-issues@v5
     timeout-minutes: 60
     with:
       report_id: ${{ needs.scan.outputs.report_id }}

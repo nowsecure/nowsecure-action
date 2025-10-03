@@ -1,9 +1,9 @@
-# Migrating to V3
+# Migrating from Earlier Versions
 
 Migrating from a previous version to V3 is straightforward. However there are two breaking changes in V3 that need to be addressed prior to migrating:
 
-1. Change all tag references (e.g. `@v1` or `@v2`) to `@v3`
-2. Remove all usages of `token` and replace them with `platform_token` in the `with:` clause
+1. Change all tag references (e.g. `@v1` or `@v2`) to the latest version available.
+2. Remove all usages of `token` and replace them with `platform_token` in the `with:` clause.
 
 Additionally, if your workflow was based off of our example workflows you will
 need to update the `github/codeql-action/upload-sarif` action to avoid warnings
