@@ -61,7 +61,7 @@ jobs:
       - id: upload
         name: NowSecure upload app
         # TODO: switch to the following:
-        # uses: nowsecure/nowsecure-action/upload-app@v3
+        # uses: nowsecure/nowsecure-action/upload-app@v5
         uses: ./upload-app
         with:
           # TODO: Make sure you change these to your actual values
@@ -89,7 +89,7 @@ jobs:
 
       - name: NowSecure download report
         # TODO: switch to the following:
-        # uses: nowsecure/nowsecure-action/convert-sarif@v3
+        # uses: nowsecure/nowsecure-action/convert-sarif@v5
         uses: ./convert-sarif
         timeout-minutes: 60
         with:
