@@ -54,7 +54,7 @@ jobs:
       #     ./gradlew clean build
 
       - name: Upload application
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: app
           # TODO: Replace this with the path to your built artifact
