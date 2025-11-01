@@ -33,7 +33,7 @@ jobs:
       #     ./gradlew clean build
 
       - name: Upload application
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: app
           # TODO: Replace the following line with the path to your built artifact
@@ -105,7 +105,7 @@ jobs:
           sarif_file: NowSecure.sarif
 
       - name: Upload SARIF to artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: NowSecure.sarif
           path: ./NowSecure.sarif
