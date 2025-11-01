@@ -75,7 +75,7 @@ jobs:
         run: sudo apt-get install --no-install-recommends -y ripgrep
 
       - name: Download application
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: app
 
