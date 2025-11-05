@@ -40,7 +40,7 @@ include-warnings: true
 
 ## GitHub Summary Page
 
-To view a summary of the results produced by NowSecure in the workflow, enable the top-level `summary` option in the `.nsconfig.yml`.
+To view a summary of the results produced by NowSecure in the workflow, set the top-level `summary` option in the `.nsconfig.yml`.  Valid options are, `none`, `short`, and `long`.
 
 For example:
 
@@ -49,7 +49,7 @@ filter:
   example-filter:
     # ...
 # Remainder of configuration...
-summary: true
+summary: short
 ```
 
 For more information on GitHub Action summaries, see GitHub's [blog post](https://github.blog/2022-05-09-supercharging-github-actions-with-job-summaries/).
