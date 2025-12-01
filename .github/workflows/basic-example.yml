@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       # TODO: Insert your actual build steps here. Example:
       #
@@ -47,7 +47,7 @@ jobs:
     needs: build
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       # NOTE: The NowSecure Action leverages ripgrep
       - name: Install ripgrep
@@ -85,7 +85,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: NowSecure download report
         # TODO: switch to the following:
