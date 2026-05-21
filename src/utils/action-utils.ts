@@ -17,7 +17,6 @@ import { Filter, KeyParams } from "./config-types";
 import { ValueError } from "./errors";
 import {
   DEFAULT_API_URL,
-  DEFAULT_LAB_API_URL,
   DEFAULT_LAB_UI_URL,
 } from "../nowsecure-client";
 import type { Context } from "@actions/github/lib/context";
@@ -36,10 +35,8 @@ export class PlatformConfig {
   constructor(
     /** API token */
     public token: string,
-    /** GraphQL server */
+    /** API endpoint */
     public apiUrl: string = DEFAULT_API_URL,
-    /** REST API (uploads) */
-    public labApiUrl: string = DEFAULT_LAB_API_URL,
     /** UI address */
     public labUrl: string = DEFAULT_LAB_UI_URL,
     /** UI type */
@@ -88,7 +85,6 @@ export function platformConfig(): PlatformConfig {
   return new PlatformConfig(
     core.getInput("platform_token"),
     core.getInput("api_url"),
-    core.getInput("lab_api_url"),
     labUrl,
     rainier
   );

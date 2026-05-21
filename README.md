@@ -11,6 +11,12 @@ The `nowsecure-action` delivers fast, accurate, automated security analysis of i
 - Show alerts inside of GitHub issues
 - And more!
 
+## Configuration
+
+All sub-actions accept an `api_url` input (default: `https://api.nowsecure.com`) that controls the single API endpoint used for all requests — both binary uploads and GraphQL queries.
+
+The `lab_api_url` input is accepted for backward compatibility but is **ignored**. If you have it set in an existing workflow, it can be safely removed.
+
 ## Documentation
 
 To configure the action, see our [documentation](./docs).

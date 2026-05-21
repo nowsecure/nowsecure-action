@@ -14,8 +14,9 @@ inputs:
     default: "https://api.nowsecure.com"
   lab_api_url:
     required: false
-    description: "NowSecure Lab API endpoint."
+    description: "Deprecated. No longer used; all requests go through api_url."
     default: "https://lab-api.nowsecure.com"
+    deprecationMessage: "lab_api_url is deprecated and ignored. All requests now use api_url."
   lab_url:
     required: false
     description: "NowSecure webserver URL."
