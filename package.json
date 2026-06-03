@@ -1,9 +1,9 @@
 {
   "name": "nowsecure-action",
-  "version": "5.0.0",
+  "version": "5.0.1",
   "main": "dist/index.js",
   "license": "MIT",
-  "author": "Keegan Saunders <ksaunders@nowsecure.com>",
+  "author": "NowSecure <support@nowsecure.com>",
   "scripts": {
     "build": "genversion -d --es6 --semi src/nowsecure-version.ts && tsc",
     "lint": "eslint src/**/*.ts && prettier --check **/*.ts",
